@@ -1,0 +1,17 @@
+#ClearMenu {
+    margin-top: 20px; /* Adjust the top margin to create space between canvas and button */
+    display: block; /* Make the button a block-level element to position it below the canvas */
+}
+#ClearButton {
+    margin-top: 5px; /* Adjust the top margin to create space between canvas and button */
+    display: block; /* Make the button a block-level element to position it below the canvas */
+}
+#PointButton {
+    margin-top: 5px; /* Adjust the top margin to create space between canvas and button */
+    display: block; /* Make the button a block-level element to position it below the canvas */
+}
+#TriangleButton {
+    margin-top: 5px; /* Adjust the top margin to create space between canvas and button */
+    display: block; /* Make the button a block-level element to position it below the canvas */
+}
+
