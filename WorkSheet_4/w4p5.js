@@ -20,6 +20,11 @@ window.onload = function init()
     var ks = 0.5;
     var s = 100.0;
 
+    /*
+    var t1 = subtract(vertices[b], vertices[a]);
+    var t2 = subtract(vertices[c], vertices[a]);
+    var normal = vec4(normalize(cross(t1, t2)));
+    */
     var orbitingRadius = -3.5;
     var orbitingAlpha = 0;
     var toggle = false;
@@ -32,8 +37,6 @@ window.onload = function init()
     var m = lookAt(vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha)), vec3(0.0,0.0,0.0), vec3(0,1,0));
 
     var P = perspective(45, 1, 1, 5);
-
-    var R0 = mat4();
 
     function initSphere(gl, numSubdivs) 
     {
@@ -131,7 +134,6 @@ window.onload = function init()
 
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(m));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(R0));
     gl.uniform4fv(gl.getUniformLocation(program, "lightPos"), lightPos);
     gl.uniform4fv(gl.getUniformLocation(program, "Ie"), Ie);
     
