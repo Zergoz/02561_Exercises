@@ -3,61 +3,33 @@
 <head>
     <title>w5p3</title>
     <script type="text/javascript" src="w5p3.js"></script>
-    <script type="text/javascript" src="C:/Users/krist/OneDrive/Desktop/DTU/MSc/Computer_Graphics/02561_Exercises/common/initShaders.js"></script>
-    <script type="text/javascript" src="C:/Users/krist/OneDrive/Desktop/DTU/MSc/Computer_Graphics/02561_Exercises/common/MV.js"></script>
-    <script type="text/javascript" src="C:/Users/krist/OneDrive/Desktop/DTU/MSc/Computer_Graphics/02561_Exercises/common/OBJParser.js"></script>
+    <script type="text/javascript" src="../common/initShaders.js"></script>
+    <script type="text/javascript" src="../common/MV.js"></script>
+    <script type="text/javascript" src="../common/OBJParser.js"></script>
 
     <script id="vertex-shader" type="x-shader/x-vertex">
         attribute vec4 a_Position;
         attribute vec4 a_Normal;
         attribute vec4 a_Color;
-        
-        varying vec3 N, L, E;
-        varying vec4 k;
+
+        varying vec4 f_Color;
 
         uniform mat4 view;
-        uniform mat4 perspective;
-        uniform vec4 lightPos;
-        
+        uniform mat4 projection;
+
         void main() {
-            k = 0.5*a_Position + 0.5;
-            vec3 light = lightPos.xyz;
-            L = normalize(light - a_Position.xyz);
-            E = -a_Position.xyz;
-            N = normalize((view * a_Normal).xyz);
-                        
-            gl_Position = perspective * view * a_Position;
+            f_Color = a_Color * a_Normal.y;
+            gl_Position = projection * view * a_Position;
         }
     </script>
     
     <script id="fragment-shader" type="x-shader/x-fragment">
         precision mediump float;
         
-        varying vec4 k;
-        varying vec3 N, L, E;
-
-        uniform float ka;
-        uniform float kd;
-        uniform float ks;
-        uniform vec4 Le;
-        uniform float s;
+        varying vec4 f_Color;
 
         void main() {
-            vec4 fColor;
-
-            vec3 H = normalize(L + E);
-            vec4 ambient = ka * Le;
-            vec4 diffuse = kd * Le * max(0.0, dot(L, N));
-            vec4 specular = ks * Le * pow(max(dot(N, H), 0.0), s);
-            
-            if (dot(L, N) < 0.0) {
-                specular = vec4(0.0, 0.0, 0.0, 1.0);
-            }
-
-            fColor = k * (ambient + diffuse + specular);
-            fColor.a = 1.0;
-            
-            gl_FragColor = fColor;
+            gl_FragColor = f_Color;
         }
     </script>
 
@@ -69,31 +41,5 @@
     <button id="Coarsen">Coarsie</button>
     <button id="Smoothen">Smoothie</button>
     <button id="Rotaten">Rotatie</button>
-    <div>
-        L_e 0 <input id="LeSlide" type="range"
-        min="0" max="2" step="0.05" value="1.0" />
-        2
-    </div>
-    <div>
-        ka 0 <input id="kaSlide" type="range"
-        min="0" max="1" step="0.05" value="0.5" />
-        1
-    </div>
-    <div>
-        kd 0 <input id="kdSlide" type="range"
-        min="0" max="1" step="0.1" value="0.5" />
-        1
-    </div>
-    <div>
-        ks 0 <input id="ksSlide" type="range"
-        min="0" max="1" step="0.1" value="0.5" />
-        1
-    </div>
-    <div>
-        s 0 <input id="sSlide" type="range"
-        min="1" max="1000" step="50.0" value="100" />
-        1000
-    </div>
-    
 </body>
 </html>

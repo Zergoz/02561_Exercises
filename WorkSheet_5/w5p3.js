@@ -5,15 +5,33 @@ window.onload = function init()
     gl.clearColor(0.3921, 0.5843, 0.9294, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    var view = lookAt(vec3(0,0,-3.5), vec3(0.0,0.0,0.5), vec3(0,1,0));
+    gl.program = initShaders(gl, "vertex-shader", "fragment-shader");
+    gl.useProgram(gl.program);
 
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
-
-    var filename = "C:/Users/krist/OneDrive/Desktop/DTU/MSc/Computer_Graphics/02561_Exercises/pine/scrubPine.obj";
-    var scale = 60;
+    gl.enable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
+    gl.frontFace(gl.CCW);
+    
+    var view = lookAt(vec3(0,0,2), vec3(0,0,0), vec3(0,1,0));
+    var P = perspective(90, 1, 0.1, 100);
+    
+    var filename = "../pine/Suzanne.obj";
+    var scale = 1;
     var model = initObject(gl, filename, scale);
+    
+    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "projection"), false, flatten(P));
+    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "view"), false, flatten(view));
+    
 
-    render(gl, view, model); requestAnimationFrame();
+
+    function tick() {
+        render(gl, view, model);
+        if(!g_drawingInfo) {
+            requestAnimationFrame(tick);
+        }
+    }
+    tick();
+
 }
 
 function initObject(gl, obj_filename, scale) {
@@ -23,13 +41,13 @@ function initObject(gl, obj_filename, scale) {
     }
     
     // Get the storage locations of attribute and uniform variables
-    var program = gl.program;
-    program.a_Position = gl.getAttribLocation(program, 'a_Position');
-    program.a_Normal = gl.getAttribLocation(program, 'a_Normal');
-    program.a_Color = gl.getAttribLocation(program, 'a_Color');
+
+    gl.program.a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+    gl.program.a_Normal = gl.getAttribLocation(gl.program, 'a_Normal');
+    gl.program.a_Color = gl.getAttribLocation(gl.program, 'a_Color');
     
     // Prepare empty buffer objects for vertex coordinates, colors, and normals
-    var model = initVertexBuffers(gl, program);
+    var model = initVertexBuffers(gl);
     
     // Start reading the OBJ file
     readOBJFile(obj_filename, gl, model, scale, true);
@@ -40,9 +58,9 @@ function initObject(gl, obj_filename, scale) {
 // Create a buffer object and perform the initial configuration
 function initVertexBuffers(gl, program) {
     var o = new Object();
-    o.vertexBuffer = createEmptyArrayBuffer(gl, program.a_Position, 3, gl.FLOAT);
-    o.normalBuffer = createEmptyArrayBuffer(gl, program.a_Normal, 3, gl.FLOAT);
-    o.colorBuffer = createEmptyArrayBuffer(gl, program.a_Color, 4, gl.FLOAT);
+    o.vertexBuffer = createEmptyArrayBuffer(gl, gl.program.a_Position, 3, gl.FLOAT);
+    o.normalBuffer = createEmptyArrayBuffer(gl, gl.program.a_Normal, 3, gl.FLOAT);
+    o.colorBuffer = createEmptyArrayBuffer(gl, gl.program.a_Color, 4, gl.FLOAT);
     o.indexBuffer = gl.createBuffer();
     return o;
 }
@@ -111,9 +129,9 @@ function render(gl, view, model)
         // OBJ and all MTLs are available
         g_drawingInfo = onReadComplete(gl, model, g_objDoc);
     }
-    if (!g_drawingInfo) return;
-
-
-    
+    if (!g_drawingInfo) { 
+        return;
+    }
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);    
     gl.drawElements(gl.TRIANGLES, g_drawingInfo.indices.length, gl.UNSIGNED_SHORT, 0);
 }
