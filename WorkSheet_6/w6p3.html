@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>w6p3</title>
+    <script type="text/javascript" src="w6p3.js"></script>
+    <script type="text/javascript" src="../common/initShaders.js"></script>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        attribute vec4 a_Position;
+        attribute vec4 a_Color;
+
+        varying vec3 normal;
+        varying vec4 f_Color;
+        varying vec4 diffuse_Color;
+        varying vec4 ambient_Color;
+        varying float u;
+        varying float v;
+        varying vec4 kd;
+        varying vec4 ka;
+        varying vec4 pos;
+        varying vec3 w_i;
+
+        uniform mat4 view;
+        uniform mat4 perspective;
+        uniform mat4 rotation;
+        uniform vec4 Ld;
+        uniform vec4 lightPos;
+        uniform sampler2D texMap;
+        
+        void main() {
+            normal = normalize(a_Position.xyz);
+            pos = view * a_Position;
+            w_i = lightPos.w == 0.0 ? normalize(-lightPos.xyz) : normalize(lightPos.xyz - pos.xyz);
+
+            u = 1.0 - atan(normal.z, normal.x)/(2.0*3.14);
+            v = acos(normal.y)/3.14;
+            kd = texture2D(texMap, vec2(u, v));
+            ka = texture2D(texMap, vec2(u, v));
+
+            diffuse_Color = vec4(kd.x * dot(w_i, normal) * Ld.x, kd.y * dot(w_i, normal) * Ld.y, kd.z * dot(w_i, normal) * Ld.z, 1);
+            ambient_Color = ka;
+            gl_Position = perspective * view * rotation * a_Position;
+        }
+    </script>
+    <script type="text/javascript" src="../common/MV.js"></script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        varying vec4 diffuse_Color;
+        varying vec4 ambient_Color;
+
+        void main() {            
+            gl_FragColor = diffuse_Color*0.5 + ambient_Color*0.5;
+        }
+    </script>
+
+</head>
+<body>
+    <canvas id="webgl-canvas" width="512" height="512">
+        Please use a browser that supports HTML5 canvas.
+    </canvas>
+    <button id="Rotaten">Rotatie</button>
+</body>
+</html>

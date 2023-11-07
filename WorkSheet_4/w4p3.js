@@ -83,7 +83,6 @@ window.onload = function init()
             numSubdivs -= 1;
         }
         numVertices = initSphere(gl, numSubdivs);
-        render()
     });
     
     var smoothenButton = document.getElementById("Smoothen");
@@ -92,7 +91,6 @@ window.onload = function init()
             numSubdivs += 1;
         }
         numVertices = initSphere(gl, numSubdivs);
-        render()
     });
 
     var rotatenButton = document.getElementById("Rotaten");

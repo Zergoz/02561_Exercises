@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>w5p4</title>
+    <script type="text/javascript" src="w5p4.js"></script>
+    <script type="text/javascript" src="../common/initShaders.js"></script>
+    <script type="text/javascript" src="../common/MV.js"></script>
+    <script type="text/javascript" src="../common/OBJParser.js"></script>
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        attribute vec4 a_Position;
+        attribute vec4 a_Normal;
+        attribute vec4 a_Color;
+
+        varying vec3 N, L, E;
+
+        varying vec4 f_Color;
+
+        uniform mat4 view;
+        uniform mat4 projection;
+        uniform vec4 lightPos;
+
+        void main() {
+            f_Color = a_Color;
+
+            vec3 light = lightPos.xyz;
+            L = normalize(light - a_Position.xyz);
+            E = -a_Position.xyz;
+            N = normalize((view * a_Normal).xyz);
+            
+            gl_Position = projection * view * a_Position;
+        }
+    </script>
+    
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        precision mediump float;
+        
+        varying vec4 f_Color;
+        varying vec3 N, L, E;
+
+        uniform float ka;
+        uniform float kd;
+        uniform float ks;
+        uniform vec4 Le;
+        uniform float s;
+
+        void main() {
+            vec4 fColor;
+            vec3 H = normalize(L + E);
+            vec4 ambient = ka * Le;
+            vec4 diffuse = kd * Le * max(0.0, dot(L, N));
+            vec4 specular = ks * Le * pow(max(dot(N, H), 0.0), s);
+            
+            if (dot(L, N) < 0.0) {
+                specular = vec4(0.0, 0.0, 0.0, 1.0);
+            }
+
+            fColor = f_Color * (ambient + diffuse + specular);
+            fColor.a = 1.0;
+            
+            gl_FragColor = fColor;
+        }
+    </script>
+
+</head>
+<body>
+    <canvas id="webgl-canvas" width="512" height="512">
+        Please use a browser that supports HTML5 canvas.
+    </canvas>
+    <button id="Coarsen">Coarsie</button>
+    <button id="Smoothen">Smoothie</button>
+    <button id="Rotaten">Rotatie</button>
+</body>
+</html>
