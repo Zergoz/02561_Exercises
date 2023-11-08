@@ -38,17 +38,24 @@
     <canvas id="webgl-canvas" width="512" height="512">
         Please use a browser that supports HTML5 canvas.
     </canvas>
-    <select id="Wrapping", size="2">
-        <option value="0" selected>Repeat</option>
+    <select id="Wrapping", size="3">
+        <option selected disabled>Wrapping</option>
+        <option value="0">Repeat</option>
         <option value="1">Clamp-To-Edge</option>
     </select>
-    <select id="Filtering", size="6">
-        <option value="0" selected>Nearest</option>
+    <select id="Min", size="7">
+        <option selected disabled>Minification</option>
+        <option value="0">Nearest</option>
         <option value="1">Linear</option>
         <option value="2">Nearest mipmap nearest</option>
         <option value="3">Linear mipmap nearest</option>
         <option value="4">Nearest mipmap linear</option>
         <option value="5">Linear mipmap linear</option>
+    </select>
+    <select id="Mag", size="3">
+        <option selected disabled>Magnification</option>
+        <option value="0">Nearest</option>
+        <option value="1">Linear</option>
     </select>
 </body>
 </html>

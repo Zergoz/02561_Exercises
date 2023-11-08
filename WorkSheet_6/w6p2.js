@@ -47,7 +47,7 @@ window.onload = function init()
 
     var wrappingMenu = document.getElementById("Wrapping");
     wrappingMenu.addEventListener("change", function(ev) {
-        switch (wrappingMenu.selectedIndex) {
+        switch (wrappingMenu.selectedIndex-1) {
             case 0:
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
@@ -60,40 +60,43 @@ window.onload = function init()
         requestAnimationFrame(render);
     });
 
-    var filteringMenu = document.getElementById("Filtering");
-    filteringMenu.addEventListener("change", function(ev) {
-        switch(filteringMenu.selectedIndex) {
+    var minMenu = document.getElementById("Min");
+    minMenu.addEventListener("change", function(ev) {
+        switch(minMenu.selectedIndex-1) {
             case 0:
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                 break;
             case 1:
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
                 break;
             case 2:
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_NEAREST);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                 break;
             case 3:
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                 break;
             case 4:
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                 break;
             case 5:
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                 break;
         }
         requestAnimationFrame(render);
     });
 
-
-
-
+    var magMenu = document.getElementById("Mag");
+    magMenu.addEventListener("change", function(ev) {
+        switch(magMenu.selectedIndex-1) {
+            case 0:
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                break;
+            case 1:
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                break;
+        }
+        requestAnimationFrame(render);
+    });
 
     var quadVertices = [
         vec4(-4, -1, -1, 1),
