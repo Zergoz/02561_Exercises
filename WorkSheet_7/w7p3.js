@@ -24,7 +24,9 @@ window.onload = function init()
     var sphereVertices = initSphere();
     
     
-    var view = lookAt(vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha)), vec3(0.0,0.0,0.0), vec3(0,1,0));
+    var eye = vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha));
+
+    var view = lookAt(eye, vec3(0.0,0.0,0.0), vec3(0,1,0));
     
     var P = perspective(90, 1, 1, 10);
     
@@ -144,12 +146,10 @@ window.onload = function init()
         if (toggle) 
         {
             orbitingAlpha += 0.01;
-            view = lookAt(vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha)), vec3(0.0,0.0,0.0), vec3(0,1,0));
+            eye = vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha));
+            view = lookAt(eye, vec3(0.0,0.0,0.0), vec3(0,1,0));
             invView = inverse(view);
             M_tex = mult(mat4(invView[0][0], invView[0][1], invView[0][2], 0, invView[1][0], invView[1][1], invView[1][2], 0, invView[2][0], invView[2][1], invView[2][2], 0, 0, 0, 0, 0), inverse(P));
-            gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
-            gl.uniformMatrix4fv(gl.getUniformLocation(program, "M_tex"), false, flatten(M_tex));
-            
         }
         if (g_tex_ready > 5) {
             render();
@@ -165,6 +165,9 @@ window.onload = function init()
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+        gl.uniform3fv(gl.getUniformLocation(program, "eye"), flatten(eye));
+        
+        gl.uniform1f(gl.getUniformLocation(program, "reflective"), 0.0);
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "M_tex"), false, flatten(M_tex));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(mat4()));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(mat4()));
@@ -172,6 +175,7 @@ window.onload = function init()
         
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         
+        gl.uniform1f(gl.getUniformLocation(program, "reflective"), 1.0);
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "M_tex"), false, flatten(mat4()));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));

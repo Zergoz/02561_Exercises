@@ -24,7 +24,9 @@ window.onload = function init()
     var sphereVertices = initSphere();
     
     
-    var view = lookAt(vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha)), vec3(0.0,0.0,0.0), vec3(0,1,0));
+    var eye = vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha));
+
+    var view = lookAt(eye, vec3(0.0,0.0,0.0), vec3(0,1,0));
     
     var P = perspective(90, 1, 1, 10);
     
@@ -111,7 +113,7 @@ window.onload = function init()
         gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
+        
         for(var i = 0; i < 6; ++i) 
         {
             var image = document.createElement('img');
@@ -119,14 +121,33 @@ window.onload = function init()
             image.textarget = gl.TEXTURE_CUBE_MAP_POSITIVE_X + i;
             image.onload = function(event)
             {
-            var image = event.target;
-            gl.activeTexture(gl.TEXTURE0);
-            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-            gl.texImage2D(image.textarget, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
-            ++g_tex_ready;
+                var image = event.target;
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                gl.texImage2D(image.textarget, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, image);
+                ++g_tex_ready;
             };
         image.src = cubemap[i];
         }
+
+        var imageSphere = document.createElement('img');
+        imageSphere.crossorigin = 'anonymous';
+        imageSphere.onload = function () 
+        {
+            gl.activeTexture(gl.TEXTURE1);
+            var textureSphere = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, textureSphere);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imageSphere);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+            ++g_tex_ready;
+        };
+        imageSphere.src = '../pine/normalmap.png';
     }
 
 
@@ -137,21 +158,18 @@ window.onload = function init()
 
     gl.uniform4fv(gl.getUniformLocation(program, "lightPos"), lightPos);
     gl.uniform4fv(gl.getUniformLocation(program, "Ld"), Ld);
-    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
 
     function tick() 
     {
         if (toggle) 
         {
             orbitingAlpha += 0.01;
-            view = lookAt(vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha)), vec3(0.0,0.0,0.0), vec3(0,1,0));
+            eye = vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha));
+            view = lookAt(eye, vec3(0.0,0.0,0.0), vec3(0,1,0));
             invView = inverse(view);
             M_tex = mult(mat4(invView[0][0], invView[0][1], invView[0][2], 0, invView[1][0], invView[1][1], invView[1][2], 0, invView[2][0], invView[2][1], invView[2][2], 0, 0, 0, 0, 0), inverse(P));
-            gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
-            gl.uniformMatrix4fv(gl.getUniformLocation(program, "M_tex"), false, flatten(M_tex));
-            
         }
-        if (g_tex_ready > 5) {
+        if (g_tex_ready > 6) {
             render();
         }
         requestAnimationFrame(tick);
@@ -165,6 +183,10 @@ window.onload = function init()
 
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+        gl.uniform3fv(gl.getUniformLocation(program, "eye"), flatten(eye));
+        
+        gl.uniform1i(gl.getUniformLocation(program, "texMapCube"), 0);
+        gl.uniform1f(gl.getUniformLocation(program, "reflective"), 0.0);
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "M_tex"), false, flatten(M_tex));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(mat4()));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(mat4()));
@@ -172,6 +194,8 @@ window.onload = function init()
         
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         
+        gl.uniform1i(gl.getUniformLocation(program, "texMapSphere"), 1);
+        gl.uniform1f(gl.getUniformLocation(program, "reflective"), 1.0);
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "M_tex"), false, flatten(mat4()));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
