@@ -16,7 +16,7 @@ window.onload = function init()
     // Variables
     var numCubes = 8; // Body, Wings, Horizontal Stabilizer, Vertical Stabilizer, Right Aileron, Left Aileron, Elevator, Rudder = 8 
     var numVertices = (36*numCubes); // 36 vertices for each cube
-    var rotationY = 0;
+    var rotationY = 45;
     
 
     // Matrices
@@ -42,9 +42,9 @@ window.onload = function init()
     const wingColor = [ 0.8, 0.8, 0.8, 1.0 ]; // light gray
     const flapColor = [ 0.0, 0.0, 0.0, 1.0 ]; // black
     
-    // ----------------------------------------------------------------- //
-    // The comments next to the vertices refer to the starting posititon //
-    // ----------------------------------------------------------------- //
+    // --------------------------------------------------------------------- //
+    // The comments next to the vertices are based on the starting posititon //
+    // --------------------------------------------------------------------- //
     // Body
     const bodyVertices = [
         -0.125, -0.125, 1, 1, // back, bottom, left
@@ -201,9 +201,11 @@ window.onload = function init()
     
     function animate() 
     {
+        /*
         rotationY++;
         Ry = rotateY(rotationY);
         Rx = mult(rotateX(45), Ry);
+        */
         render(); requestAnimationFrame(animate);
     }
 }   
