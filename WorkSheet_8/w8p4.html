@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>w8p4</title>
+    <script type="text/javascript" src="w8p4.js"></script>
+    <script type="text/javascript" src="../common/initShaders.js"></script>
+    <script type="text/javascript" src="../common/webgl-utils.js"></script>
+    
+
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        attribute vec4 a_Position;
+        attribute vec2 a_Tex_Coord;
+
+        varying vec2 f_Tex_Coord;
+
+        uniform mat4 view;
+        uniform mat4 perspective;
+
+        void main() {
+            f_Tex_Coord = a_Tex_Coord;
+            gl_Position = perspective * view * a_Position;
+        }
+    </script>
+    <script type="text/javascript" src="../common/MV.js"></script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        varying vec2 f_Tex_Coord;
+
+        uniform sampler2D texMap;
+        uniform float visibility;
+
+        void main() {
+            gl_FragColor = texture2D(texMap, f_Tex_Coord) * vec4(visibility, visibility, visibility, min(1.0, 0.8+visibility));
+        }
+    </script>
+
+</head>
+<body>
+    <canvas id="webgl-canvas" width="512" height="512">
+        Please use a browser that supports HTML5 canvas.
+    </canvas>
+    <button id="Rotaten">Rotatie</button>
+</body>
+</html>

@@ -2,19 +2,24 @@ window.onload = function init()
 {
     var canvas = document.getElementById("webgl-canvas");
     var gl = canvas.getContext("webgl");
+    gl = WebGLUtils.setupWebGL(canvas, {alpha: false});
     gl.clearColor(0.3921, 0.5843, 0.9294, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
     gl.frontFace(gl.CCW);
+    gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    
     
     var lightPos = vec3(0,2,0);
     var lightRot = 0.0;
     var toggle = 0;
     var numVertices = 4;
     var textureReady = 0;
-
+    const epsilon = .001;
+ 
     var view = mat4();
     var P = perspective(90, 1, 1, 100);
     var d = -3.0;
@@ -22,8 +27,8 @@ window.onload = function init()
     var T = translate(lightPos[0], lightPos[1], lightPos[2]);
     var nT = translate(-lightPos[0], -lightPos[1], -lightPos[2]);
     
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     var image = document.createElement('img');
     image.crossorigin = 'anonymous';
@@ -91,28 +96,34 @@ window.onload = function init()
     gl.enableVertexAttribArray(vTexCoord);
     
     function render() {
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
-
+        gl.uniform1f(gl.getUniformLocation(program, "visibility"), 1.0);
+        gl.depthFunc(gl.LESS);
+        
         gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, numVertices);
-
         
         var modView = mat4();
         modView = mult(modView, T);
         modView = mult(modView, Mp);
         modView = mult(modView, nT);
+        modView[1][1] += epsilon;
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(modView));
-
+        gl.uniform1f(gl.getUniformLocation(program, "visibility"), 0.0);
+        gl.depthFunc(gl.GREATER);
+        
         gl.uniform1i(gl.getUniformLocation(program, "texMap"), 1);
         gl.drawArrays(gl.TRIANGLE_FAN, numVertices, numVertices);
         
         gl.drawArrays(gl.TRIANGLE_FAN, numVertices*2, numVertices);
-
+        
         
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
+        gl.uniform1f(gl.getUniformLocation(program, "visibility"), 1.0);
+        gl.depthFunc(gl.LESS);
 
         gl.uniform1i(gl.getUniformLocation(program, "texMap"), 1);
         gl.drawArrays(gl.TRIANGLE_FAN, numVertices, numVertices);
