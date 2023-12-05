@@ -233,10 +233,9 @@ window.onload = function init()
     {
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "wholeRotation"), false, flatten(Rwhole));
-        
+                
         
         // Immovable objects
-        
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "trans"), false, flatten(mat4()));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(mat4()));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "untrans"), false, flatten(mat4()));
@@ -271,13 +270,24 @@ window.onload = function init()
     
     function animate() 
     {
-        rotationX -= thetaElevator/45;
+        rotationX += thetaElevator/45;
         rotationY -= thetaRudder/45;
         rotationZ -= thetaAileron/45;
         Rx = rotateX(rotationX);
         Ry = rotateY(rotationY);
         Rz = rotateZ(rotationZ);
-        Rwhole = mult(mult(mult(Rstart, Rz), Ry), Rx);
+        
+        /*
+        Rwhole = mat4();
+        Rwhole = mult(Rwhole, Rx);
+        Rwhole = mult(Rwhole, Ry);
+        Rwhole = mult(Rwhole, Rz);
+        */
+        //Rwhole = mult(Rx, mult(Ry, mult(Rz, mult (Rstart, mat4()))));
+        
+        Rwhole = mult(mult(mult(mult(Rstart, mat4()), Rz), Ry), Rx);
+
+        //Rwhole = mult(mult(mult(Rstart, Rz), Ry), Rx);
         
         render(); requestAnimationFrame(animate);
     }
