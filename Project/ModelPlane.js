@@ -16,26 +16,48 @@ window.onload = function init()
     // Variables
     var numCubes = 8; // Body, Wings, Horizontal Stabilizer, Vertical Stabilizer, Right Aileron, Left Aileron, Elevator, Rudder = 8 
     var numVertices = (36*numCubes); // 36 vertices for each cube
-    var rotationY = 45;
+    var rotationX = 0; 
+    var rotationY = 0;
+    var rotationZ = 0;
+    const epsilon = .0001;
     
 
-    // Matrices
-    var T = translate(0.5, 0.5, 0.5);
+    // Matrices and start uploads
+    var m = lookAt(vec3(0,0,-2.5), vec3(0.0,0.0,0.0), vec3(0,1,0));
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(m));
 
-    var m = lookAt(vec3(0,0,-2), vec3(0.0,0.0,0.0), vec3(0,1,0));
+    var P = perspective(70, 1, 1, 5);
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
 
-    var P = perspective(90, 1, 1, 5);
+    const Rstart = mult(rotateX(45), rotateY(45));
 
+    var Rx = rotateX(rotationX);
+    
     var Ry = rotateY(rotationY);
 
-    var Rx = mult(rotateX(45), Ry);
+    var Rz = rotateZ(rotationZ);
 
-    var R0 = mat4();
-    
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(m));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(R0));
-    
+    var Rwhole = mult(mult(Rx, Ry), Rz);
+
+
+    // Rudder stuff
+    var transRudder = translate(0.0, 0.0, -0.9);
+    var thetaRudder = 0;
+    var RRudder = rotateY(thetaRudder);
+    var untransRudder = translate(0.0, 0.0, 0.9);
+
+    // Elevator stuff
+    var transElevator = translate(0.0, 0.0, -0.9);
+    var thetaElevator = 0;
+    var RElevator = rotateX(thetaElevator);
+    var untransElevator = translate(0.0, 0.0, 0.9);
+
+    // Aileron stuff
+    var transAileron = translate(0.0, 0.0, 0.0);
+    var thetaAileron = 0;
+    var RAileronRight = rotateX(thetaAileron);
+    var RAileronLeft = rotateX(-thetaAileron);
+    var untransAileron = translate(0.0, 0.0, 0.0);
 
     // Colors
     const bodyColor = [ 0.5, 0.5, 0.5, 1.0 ]; // dark gray
@@ -70,12 +92,12 @@ window.onload = function init()
     ];
 
     const rightAileronVertices = [
-        -1, -0.025, 0.1, 1, // back, bottom, left
-        -1, 0.025, 0.1, 1, // back, top, left
+        -1+epsilon, -0.025, 0.1, 1, // back, bottom, left
+        -1+epsilon, 0.025, 0.1, 1, // back, top, left
         0, 0.025, 0.1, 1, // back, top, right
         0, -0.025, 0.1, 1, // back, bottom, right
-        -1, -0.025, 0.0, 1, // front, bottom, left
-        -1, 0.025, 0.0, 1, // front, top, left
+        -1+epsilon, -0.025, 0.0, 1, // front, bottom, left
+        -1+epsilon, 0.025, 0.0, 1, // front, top, left
         0, 0.025, 0.0, 1, // front, top, right
         0, -0.025, 0.0, 1 // front, bottom, right
     ];
@@ -83,12 +105,12 @@ window.onload = function init()
     const leftAileronVertices = [
         0, -0.025, 0.1, 1, // back, bottom, left
         0, 0.025, 0.1, 1, // back, top, left
-        1, 0.025, 0.1, 1, // back, top, right
-        1, -0.025, 0.1, 1, // back, bottom, right
+        1-epsilon, 0.025, 0.1, 1, // back, top, right
+        1-epsilon, -0.025, 0.1, 1, // back, bottom, right
         0, -0.025, 0.0, 1, // front, bottom, left
         0, 0.025, 0.0, 1, // front, top, left
-        1, 0.025, 0.0, 1, // front, top, right
-        1, -0.025, 0.0, 1 // front, bottom, right
+        1-epsilon, 0.025, 0.0, 1, // front, top, right
+        1-epsilon, -0.025, 0.0, 1 // front, bottom, right
     ];
 
     // Stabilizers
@@ -104,14 +126,14 @@ window.onload = function init()
     ];
 
     const elevatorVertices = [
-        -0.4, -0.025, 0.99, 1, // back, bottom, left
-        -0.4, 0.025, 0.99, 1, // back, top, left
-        0.4, 0.025, 0.99, 1, // back, top, right
-        0.4, -0.025, 0.99, 1, // back, bottom, right
-        -0.4, -0.025, 0.9, 1, // front, bottom, left
-        -0.4, 0.025, 0.9, 1, // front, top, left
-        0.4, 0.025, 0.9, 1, // front, top, right
-        0.4, -0.025, 0.9, 1 // front, bottom, right
+        -0.4+epsilon, -0.025, 1-epsilon, 1, // back, bottom, left
+        -0.4+epsilon, 0.025, 1-epsilon, 1, // back, top, left
+        0.4-epsilon, 0.025, 1-epsilon, 1, // back, top, right
+        0.4-epsilon, -0.025, 1-epsilon, 1, // back, bottom, right
+        -0.4+epsilon, -0.025, 0.9, 1, // front, bottom, left
+        -0.4+epsilon, 0.025, 0.9, 1, // front, top, left
+        0.4-epsilon, 0.025, 0.9, 1, // front, top, right
+        0.4-epsilon, -0.025, 0.9, 1 // front, bottom, right
     ];
 
     const vertiStabVertices = [
@@ -126,13 +148,13 @@ window.onload = function init()
     ];
 
     const rudderVertices = [
-        -0.025, 0.0, 0.99, 1, // back, bottom, left
-        -0.025, 0.4, 0.99, 1, // back, top, left
-        0.025, 0.4, 0.99, 1, // back, top, right
-        0.025, 0.0, 0.99, 1, // back, bottom, right
+        -0.025, 0.0, 1-epsilon, 1, // back, bottom, left
+        -0.025, 0.4-epsilon, 1-epsilon, 1, // back, top, left
+        0.025, 0.4-epsilon, 1-epsilon, 1, // back, top, right
+        0.025, 0.0, 1-epsilon, 1, // back, bottom, right
         -0.025, 0.0, 0.9, 1, // front, bottom, left
-        -0.025, 0.4, 0.9, 1, // front, top, left
-        0.025, 0.4, 0.9, 1, // front, top, right
+        -0.025, 0.4-epsilon, 0.9, 1, // front, top, left
+        0.025, 0.4-epsilon, 0.9, 1, // front, top, right
         0.025, 0.0, 0.9, 1 // front, bottom, right
     ];
 
@@ -168,7 +190,24 @@ window.onload = function init()
     // Making big array for indices
     indexArray = cubeIndicesIncrease(aIncrease(cubeIndices, numCubes), numCubes);
     
-    
+    // Event listeners
+    var rudderSlider = document.getElementById("Rudder");
+    rudderSlider.addEventListener("input", function(ev) {
+        thetaRudder = ev.currentTarget.value;
+        RRudder = rotateY(thetaRudder);
+    });
+    var elevatorSlider = document.getElementById("Elevator");
+    elevatorSlider.addEventListener("input", function(ev) {
+        thetaElevator = ev.currentTarget.value;
+        RElevator = rotateX(thetaElevator);
+    });
+    var aileronSlider = document.getElementById("Aileron");
+    aileronSlider.addEventListener("input", function(ev) {
+        thetaAileron = ev.currentTarget.value;
+        RAileronRight = rotateX(thetaAileron);
+        RAileronLeft = rotateX(-thetaAileron);
+    });
+
     // Buffer stuff
     var vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
@@ -193,19 +232,53 @@ window.onload = function init()
     function render() 
     {
         gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(Rx));
-        gl.drawElements(gl.TRIANGLES, numVertices, gl.UNSIGNED_BYTE, 0);
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "wholeRotation"), false, flatten(Rwhole));
+        
+        
+        // Immovable objects
+        
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "trans"), false, flatten(mat4()));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(mat4()));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "untrans"), false, flatten(mat4()));
+        gl.drawElements(gl.TRIANGLES, 36*4, gl.UNSIGNED_BYTE, 0);
+        
+        // Ailerons
+        // Right
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "trans"), false, flatten(transAileron));        
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(RAileronRight));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "untrans"), false, flatten(untransAileron));
+        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 36*4);
+        
+        // Left
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(RAileronLeft));
+        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 36*5);
+
+        // Elevator
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "trans"), false, flatten(transElevator));        
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(RElevator));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "untrans"), false, flatten(untransElevator));
+        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 36*6);
+
+        // Rudder
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "trans"), false, flatten(transRudder));        
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(RRudder));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "untrans"), false, flatten(untransRudder));
+        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 36*7);
+
     }
     
     animate();
     
     function animate() 
     {
-        /*
-        rotationY++;
+        rotationX -= thetaElevator/45;
+        rotationY -= thetaRudder/45;
+        rotationZ -= thetaAileron/45;
+        Rx = rotateX(rotationX);
         Ry = rotateY(rotationY);
-        Rx = mult(rotateX(45), Ry);
-        */
+        Rz = rotateZ(rotationZ);
+        Rwhole = mult(mult(mult(Rstart, Rz), Ry), Rx);
+        
         render(); requestAnimationFrame(animate);
     }
 }   

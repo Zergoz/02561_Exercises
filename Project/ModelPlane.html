@@ -11,10 +11,13 @@
         varying vec4 v_Color;
         uniform mat4 view;
         uniform mat4 perspective;
+        uniform mat4 wholeRotation;
         uniform mat4 rotation;
+        uniform mat4 trans;
+        uniform mat4 untrans;
         void main() {
             v_Color = a_Color;
-            gl_Position = perspective * view * rotation * a_Position;
+            gl_Position = perspective * view * wholeRotation * untrans * rotation * trans * a_Position;
         }
     </script>
     <script type="text/javascript" src="../common/MV.js"></script>
@@ -32,5 +35,20 @@
     <canvas id="webgl-canvas" width="512" height="512">
         Please use a browser that supports HTML5 canvas.
     </canvas>
+    <div>
+        Rudder -45 <input id="Rudder" type="range"
+        min="-45" max="45" step="1" value="0" />
+        45
+    </div>
+    <div>
+        Elevator -45 <input id="Elevator" type="range"
+        min="-45" max="45" step="1" value="0" />
+        45
+    </div>
+    <div>
+        Ailerons -45 <input id="Aileron" type="range"
+        min="-45" max="45" step="1" value="0" />
+        45
+    </div>
 </body>
 </html>
