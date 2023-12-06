@@ -19,17 +19,18 @@ window.onload = function init()
     var rotationX = 0; 
     var rotationY = 0;
     var rotationZ = 0;
+    var axisX = vec4(1.0, 0.0, 0.0, 0.0);
+    var axisY = vec4(0.0, 1.0, 0.0, 0.0);
+    var axisZ = vec4(0.0, 0.0, 1.0, 0.0);
     const epsilon = .0001;
     
 
     // Matrices and start uploads
-    var m = lookAt(vec3(0,0,-2.5), vec3(0.0,0.0,0.0), vec3(0,1,0));
+    var m = lookAt(vec3(0.0,0.0,-2.5), vec3(0.0,0.0,0.0), vec3(0,1,0));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(m));
 
     var P = perspective(70, 1, 1, 5);
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
-
-    const Rstart = mult(rotateX(45), rotateY(45));
 
     var Rx = rotateX(rotationX);
     
@@ -232,7 +233,10 @@ window.onload = function init()
     function render() 
     {
         gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "wholeRotation"), false, flatten(Rwhole));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "RX"), false, flatten(Rx));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "RY"), false, flatten(Ry));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "RZ"), false, flatten(Rz));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "Rwhole"), false, flatten(Rwhole));
                 
         
         // Immovable objects
@@ -265,32 +269,25 @@ window.onload = function init()
         gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 36*7);
 
     }
-    
-    animate();
-    
+        
     function animate() 
     {
         rotationX += thetaElevator/45;
-        rotationY -= thetaRudder/45;
-        rotationZ -= thetaAileron/45;
-        Rx = rotateX(rotationX);
-        Ry = rotateY(rotationY);
-        Rz = rotateZ(rotationZ);
-        
+        rotationY += thetaRudder/45;
+        rotationZ += thetaAileron/45;
         /*
-        Rwhole = mat4();
-        Rwhole = mult(Rwhole, Rx);
-        Rwhole = mult(Rwhole, Ry);
-        Rwhole = mult(Rwhole, Rz);
+        Rx = rotate(rotationX, axisX);
+        Ry = rotate(rotationY, mult(Rx, axisY));
+        Rz = rotate(rotationZ, mult(mult(Ry, Rx), axisZ));
         */
-        //Rwhole = mult(Rx, mult(Ry, mult(Rz, mult (Rstart, mat4()))));
         
-        Rwhole = mult(mult(mult(mult(Rstart, mat4()), Rz), Ry), Rx);
+        Ry = rotateY(rotationY);
+        axisZ = mult(Ry, vec4(0.0, 0.0, 1.0, 0.0));
+        Rwhole = mult(rotate(rotationZ, axisZ), mult(rotateY(rotationY), rotateX(rotationX)));
 
-        //Rwhole = mult(mult(mult(Rstart, Rz), Ry), Rx);
-        
         render(); requestAnimationFrame(animate);
     }
+    animate();
 }   
 
 

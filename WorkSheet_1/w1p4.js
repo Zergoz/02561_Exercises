@@ -4,12 +4,13 @@ window.onload = function init()
     var gl = canvas.getContext("webgl");
     gl.clearColor(0.3921, 0.5843, 0.9294, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
-
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
 
     var pVertices = [ vec2(0.5, -0.5), vec2(-0.5, -0.5), vec2(0.5, 0.5), vec2(-0.5, 0.5) ];
+
     var cVertices = [ vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 0.0, 1.0) ]
+
     var pBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, pBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(pVertices), gl.STATIC_DRAW);
@@ -28,14 +29,16 @@ window.onload = function init()
 
     var betaLoc = gl.getUniformLocation(program, "beta");
     var beta = 0.0;
+    
+    function render()
+    {
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, pVertices.length);
+    }
+
     function animate() {
-    beta -= 0.01; gl.uniform1f(betaLoc, beta);
-    render(gl, pVertices.length); requestAnimationFrame(animate);
+        beta -= 0.01; gl.uniform1f(betaLoc, beta);
+        render(); requestAnimationFrame(animate);
     }
     animate();
-}
-function render(gl, numPoints)
-{
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, numPoints);
 }

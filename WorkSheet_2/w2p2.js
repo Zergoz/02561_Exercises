@@ -10,21 +10,6 @@ window.onload = function init()
 
     var max_verts = 1000;
     var index = 0; var numPoints = 0;
-    var clickBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, clickBuffer);    
-    gl.bufferData(gl.ARRAY_BUFFER, max_verts*sizeof['vec2'], gl.STATIC_DRAW);
-
-    var vPosition = gl.getAttribLocation(program, "a_Position");
-    gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPosition);
-
-    var colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, max_verts*sizeof['vec4'], gl.STATIC_DRAW);
-
-    var colorPosition = gl.getAttribLocation(program, "a_Color");
-    gl.vertexAttribPointer(colorPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(colorPosition);
 
     var colorMenu = document.getElementById("ColorMenu");
     var clearMenu = document.getElementById("ClearMenu");
@@ -61,12 +46,29 @@ window.onload = function init()
         numPoints = Math.max(numPoints, ++index); index %= max_verts;
     });
 
+    var clickBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, clickBuffer);    
+    gl.bufferData(gl.ARRAY_BUFFER, max_verts*sizeof['vec2'], gl.STATIC_DRAW);
+
+    var vPosition = gl.getAttribLocation(program, "a_Position");
+    gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPosition);
+
+    var colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, max_verts*sizeof['vec4'], gl.STATIC_DRAW);
+
+    var colorPosition = gl.getAttribLocation(program, "a_Color");
+    gl.vertexAttribPointer(colorPosition, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(colorPosition);
+
+    function render() {
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.POINTS, 0, numPoints);
+    }
+
     function animate() {
-        render(gl, numPoints); requestAnimationFrame(animate);
+        render(); requestAnimationFrame(animate);
     }
     animate();
-}   
-function render(gl, numPoints) {
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.POINTS, 0, numPoints);
 }

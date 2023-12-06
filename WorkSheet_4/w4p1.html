@@ -3,21 +3,19 @@
 <head>
     <title>w4p1</title>
     <script type="text/javascript" src="w4p1.js"></script>
-    <script type="text/javascript" src="C:/Users/krist/OneDrive/Desktop/DTU/MSc/Computer_Graphics/02561_Exercises/common/initShaders.js"></script>
+    <script type="text/javascript" src="../common/initShaders.js"></script>
 
     <script id="vertex-shader" type="x-shader/x-vertex">
         attribute vec4 a_Position;
-        //attribute vec4 a_Color;
         varying vec4 v_Color;
         uniform mat4 view;
         uniform mat4 perspective;
-        uniform mat4 rotation;
         void main() {
             v_Color = vec4(1,1,1,1);
-            gl_Position = perspective * view * rotation * a_Position;
+            gl_Position = perspective * view * a_Position;
         }
     </script>
-    <script type="text/javascript" src="C:/Users/krist/OneDrive/Desktop/DTU/MSc/Computer_Graphics/02561_Exercises/common/MV.js"></script>
+    <script type="text/javascript" src="../common/MV.js"></script>
 
     <script id="fragment-shader" type="x-shader/x-fragment">
         precision mediump float;
@@ -32,7 +30,7 @@
     <canvas id="webgl-canvas" width="512" height="512">
         Please use a browser that supports HTML5 canvas.
     </canvas>
-    <button id="Coarsen">Coarsie</button>
-    <button id="Smoothen">Smoothie</button>
+    <button id="Coarsen">Coarsen</button>
+    <button id="Smoothen">Smoothen</button>
 </body>
 </html>

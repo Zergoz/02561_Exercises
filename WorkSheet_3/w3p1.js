@@ -4,15 +4,12 @@ window.onload = function init()
     var gl = canvas.getContext("webgl");
     gl.clearColor(0.3921, 0.5843, 0.9294, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
-
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
 
     var numVertices = 36;
-    var T = translate(0.5, 0.5, 0.5);
 
     var m = lookAt(vec3(0,0,0), vec3(0.5,0.5,-0.5), vec3(-0.5,0.5,-0.5));
-
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(m));
 
     var cubeColors = [
@@ -37,21 +34,6 @@ window.onload = function init()
         vec4(0.5, -0.5, -0.5, 1)
     ];
     
-    var triangleIndices = [
-        1, 0, 3,
-        3, 2, 1,
-        2, 3, 7,
-        7, 6, 2,
-        3, 0, 4,
-        4, 7, 3,
-        6, 5, 1,
-        1, 2, 6,
-        4, 5, 6,
-        6, 7, 4,
-        5, 4, 0,
-        0, 1, 5
-    ];
-
     var wireIndices = new Uint32Array([
         0, 1, 1, 2, 2, 3, 3, 0, // front
         2, 3, 3, 7, 7, 6, 6, 2, // right

@@ -8,27 +8,11 @@ window.onload = function init()
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
     
-    // Variables (somewhat primitive)
+    // Variables
     var max_verts = 1000;
     var index = 0; var numTriangles = 0; var start = [ 0 ];
     var drawMode = "point"; counter = 0;
     var record = [ 0 ]; crecord = [ 0 ];
-
-    var clickBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, clickBuffer);    
-    gl.bufferData(gl.ARRAY_BUFFER, max_verts*sizeof['vec2'], gl.STATIC_DRAW);
-
-    var vPosition = gl.getAttribLocation(program, "a_Position");
-    gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vPosition);
-
-    var colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, max_verts*sizeof['vec4'], gl.STATIC_DRAW);
-    
-    var colorPosition = gl.getAttribLocation(program, "a_Color");
-    gl.vertexAttribPointer(colorPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(colorPosition);
     
     var colorMenu = document.getElementById("ColorMenu");
     var clearMenu = document.getElementById("ClearMenu");
@@ -48,7 +32,7 @@ window.onload = function init()
         var bgcolor = colors[clearMenu.selectedIndex];
         gl.clearColor(bgcolor[0], bgcolor[1], bgcolor[2], bgcolor[3]);
         numTriangles = 0; index = 0;
-        render(gl, numTriangles, start);
+        render();
     });
 
     var pointButton = document.getElementById("PointButton");
@@ -248,13 +232,30 @@ window.onload = function init()
 
                 break;
         }
-        render(gl, numTriangles, start);
-        });
+        render();
+    });
+
+    var clickBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, clickBuffer);    
+    gl.bufferData(gl.ARRAY_BUFFER, max_verts*sizeof['vec2'], gl.STATIC_DRAW);
+
+    var vPosition = gl.getAttribLocation(program, "a_Position");
+    gl.vertexAttribPointer(vPosition, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPosition);
+
+    var colorBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, max_verts*sizeof['vec4'], gl.STATIC_DRAW);
     
-}
-function render(gl, numTriangles, start) {
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    for (var i = 0; i < numTriangles; ++i) {
-        gl.drawArrays(gl.TRIANGLES, start[i], 3);
+    var colorPosition = gl.getAttribLocation(program, "a_Color");
+    gl.vertexAttribPointer(colorPosition, 4, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(colorPosition);
+
+    function render() {
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        for (var i = 0; i < numTriangles; ++i) {
+            gl.drawArrays(gl.TRIANGLES, start[i], 3);
+        }
     }
 }
+

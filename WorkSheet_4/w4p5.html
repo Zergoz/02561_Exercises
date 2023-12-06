@@ -18,8 +18,7 @@
         
         void main() {
             k = 0.5*a_Position + 0.5;
-            vec3 light = lightPos.xyz;
-            L = normalize(light - a_Position.xyz);
+            L = normalize(lightPos.xyz - a_Position.xyz);
             E = -a_Position.xyz;
             N = normalize((view * a_Normal).xyz);
                         
@@ -64,9 +63,9 @@
     <canvas id="webgl-canvas" width="512" height="512">
         Please use a browser that supports HTML5 canvas.
     </canvas>
-    <button id="Coarsen">Coarsie</button>
-    <button id="Smoothen">Smoothie</button>
-    <button id="Rotaten">Rotatie</button>
+    <button id="Coarsen">Coarsen</button>
+    <button id="Smoothen">Smoothen</button>
+    <button id="Rotate">Rotate</button>
     <div>
         L_e 0 <input id="LeSlide" type="range"
         min="0" max="2" step="0.05" value="1.0" />

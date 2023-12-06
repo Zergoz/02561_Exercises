@@ -4,7 +4,6 @@ window.onload = function init()
     var gl = canvas.getContext("webgl");
     gl.clearColor(0.3921, 0.5843, 0.9294, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
-
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
 
@@ -12,11 +11,13 @@ window.onload = function init()
     var cVertices = [ vec3(0.0, 0.0, 0.0) ];
     var r = 0.5;
     var n = 50;
-    
+    var theta = 0;
+    var periphery = vec2(0.0, 0.0);
+
     for (let i = 0; i <= n; i++) {
         theta = (2*Math.PI*i)/n;
-        perifey = vec2(r*Math.cos(theta), r*Math.sin(theta));
-        pVertices.push(perifey);
+        periphery = vec2(r*Math.cos(theta), r*Math.sin(theta));
+        pVertices.push(periphery);
         cVertices.push(vec3(Math.random(), Math.random(), Math.random()));
     }
     var pBuffer = gl.createBuffer();
@@ -35,19 +36,20 @@ window.onload = function init()
     gl.vertexAttribPointer(cPosition, 3, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(cPosition);
 
-    var trans = gl.getUniformLocation(program, "translation");
+    function render()
+    {
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, pVertices.length);
+    }
+    
     var v = vec2(0.0, 0.0);
     var w = vec2(0.0, 0.01);
+    var trans = gl.getUniformLocation(program, "translation");
     function animate() {
         v = add(v,w);
         w = mult(vec2(0, Math.sign(1-r-length(v))), w);
         gl.uniform2f(trans, v[0], v[1]);
-        render(gl, pVertices.length); requestAnimationFrame(animate);
+        render(); requestAnimationFrame(animate);
     }
     animate();
-}
-function render(gl, numPoints)
-{
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, numPoints);
 }

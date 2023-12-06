@@ -9,21 +9,19 @@ window.onload = function init()
     gl.useProgram(program);
 
     var numVertices = 36;
-    var T = translate(0.5, 0.5, 0.5);
-
+    
     var m = lookAt(vec3(0,0,-2.5), vec3(0.0,0.0,0.5), vec3(0,1,0));
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(m));
 
     var P = perspective(45, 1, 1, 5);
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
+
+    var R0 = mat4();
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(R0));
 
     var Ry = rotateY(45);
 
     var Rx = mult(rotateX(45), Ry);
-
-    var R0 = mat4();
-
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(m));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(R0));
 
     var cubeColors = [
         [ 0.0, 0.0, 0.0, 1.0 ], // black
