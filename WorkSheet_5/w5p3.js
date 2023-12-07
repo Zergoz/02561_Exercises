@@ -13,17 +13,15 @@ window.onload = function init()
     gl.frontFace(gl.CCW);
     
     var view = lookAt(vec3(0,0,2), vec3(0,0,0), vec3(0,1,0));
+    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "view"), false, flatten(view));
+
     var P = perspective(90, 1, 0.1, 100);
+    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "projection"), false, flatten(P));
     
-    var filename = "../pine/Suzanne.obj";
+    var filename = "../Assets/Suzanne.obj";
     var scale = 1;
     var model = initObject(gl, filename, scale);
     
-    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "projection"), false, flatten(P));
-    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "view"), false, flatten(view));
-    
-
-
     function tick() {
         render(gl, view, model);
         if(!g_drawingInfo) {
@@ -31,7 +29,6 @@ window.onload = function init()
         }
     }
     tick();
-
 }
 
 function initObject(gl, obj_filename, scale) {

@@ -45,7 +45,7 @@ window.onload = function init()
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
         textureReady = 1;
     };
-    image.src = '../pine/xamp23.png';
+    image.src = '../Assets/xamp23.png';
 
     var quadVertices = [
         vec4(-2, -1, -1, 1),

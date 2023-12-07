@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>w5p4</title>
-    <script type="text/javascript" src="w5p4.js"></script>
+    <title>w9p1</title>
+    <script type="text/javascript" src="w9p1.js"></script>
     <script type="text/javascript" src="../common/initShaders.js"></script>
     <script type="text/javascript" src="../common/MV.js"></script>
     <script type="text/javascript" src="../common/OBJParser.js"></script>
@@ -18,6 +18,8 @@
 
         uniform mat4 view;
         uniform mat4 projection;
+        uniform mat4 translate;
+
         uniform vec4 lightPos;
 
         void main() {
@@ -27,8 +29,8 @@
             L = normalize(light - a_Position.xyz);
             E = -a_Position.xyz;
             N = normalize((view * a_Normal).xyz);
-            
-            gl_Position = projection * view * a_Position;
+
+            gl_Position = projection * view * translate * a_Position;
         }
     </script>
     

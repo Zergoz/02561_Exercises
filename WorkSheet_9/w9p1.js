@@ -12,7 +12,7 @@ window.onload = function init()
     gl.enable(gl.DEPTH_TEST);
     gl.frontFace(gl.CCW);
     
-    var lightPos = vec4(0,0,-1,0);
+    var lightPos = vec4(0,1.5,1,0);
     gl.uniform4fv(gl.getUniformLocation(gl.program, "lightPos"), lightPos);
 
     var Le = vec4(1,1,1,1);
@@ -30,14 +30,43 @@ window.onload = function init()
     var s = 100.0;
     gl.uniform1f(gl.getUniformLocation(gl.program, "s"), s);
 
-    var view = lookAt(vec3(0,0,2), vec3(0,0,0), vec3(0,1,0));
+    var view = mat4();
     gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "view"), false, flatten(view));
 
     var P = perspective(90, 1, 0.1, 100);
     gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "projection"), false, flatten(P));
     
-    var filename = "../Assets/Suzanne.obj";
-    var scale = 1;
+    var T = translate(0, -1, -3);
+    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "translate"), false, flatten(T));
+    
+
+    var image = document.createElement('img');
+    image.crossorigin = 'anonymous';
+    image.onload = function () { 
+        var texture0 = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture0);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        textureReady = 1;
+    };
+    image.src = '../Assets/xamp23.png';
+
+
+    var texCoords = [
+        vec2(0.0, 0.0),
+        vec2(1.0, 0.0),
+        vec2(1.0, 1.0),
+        vec2(0.0, 1.0)
+    ];
+    
+    var filename = "../Assets/teapot.obj";
+    var scale = 0.25;
     var model = initObject(gl, filename, scale);
     
     function tick() {
@@ -123,9 +152,19 @@ function onReadComplete(gl, model, objDoc) {
     // Acquire the vertex coordinates and colors from OBJ file
     var drawingInfo = objDoc.getDrawingInfo();
 
+    var quadVertices = [
+        vec3(-2, -1, -1),
+        vec3(2, -1, -1),
+        vec3(2, -1, -5),
+        vec3(-2, -1, -5),
+    ];
+    var tempmos = drawingInfo.vertices;
+    var temp = new Float32Array(drawingInfo.vertices.length + 9);
+    temp = drawingInfo.vertices.concat(flatten(quadVertices));
+
     // Write date into the buffer object
     gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.vertices,gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, temp, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.normalBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.normals, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.colorBuffer);
@@ -147,6 +186,7 @@ function render(gl, model)
     if (!g_drawingInfo) { 
         return;
     }
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);    
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLE_FAN, g_drawingInfo.indices.length, 4)
     gl.drawElements(gl.TRIANGLES, g_drawingInfo.indices.length, gl.UNSIGNED_SHORT, 0);
 }
