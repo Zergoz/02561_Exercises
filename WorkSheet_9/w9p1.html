@@ -11,8 +11,10 @@
         attribute vec4 a_Position;
         attribute vec4 a_Normal;
         attribute vec4 a_Color;
+        attribute vec2 a_Tex_Coord;
 
         varying vec3 N, L, E;
+        varying vec2 f_Tex_Coord;
 
         varying vec4 f_Color;
 
@@ -23,6 +25,7 @@
         uniform vec4 lightPos;
 
         void main() {
+            f_Tex_Coord = a_Tex_Coord;
             f_Color = a_Color;
 
             vec3 light = lightPos.xyz;
@@ -39,28 +42,36 @@
         
         varying vec4 f_Color;
         varying vec3 N, L, E;
-
+        varying vec2 f_Tex_Coord;
+        
+        uniform sampler2D texMap;
         uniform float ka;
         uniform float kd;
         uniform float ks;
         uniform vec4 Le;
         uniform float s;
+        uniform bool marmor;
 
         void main() {
-            vec4 fColor;
-            vec3 H = normalize(L + E);
-            vec4 ambient = ka * Le;
-            vec4 diffuse = kd * Le * max(0.0, dot(L, N));
-            vec4 specular = ks * Le * pow(max(dot(N, H), 0.0), s);
-            
-            if (dot(L, N) < 0.0) {
-                specular = vec4(0.0, 0.0, 0.0, 1.0);
+            if (marmor) {
+                gl_FragColor = texture2D(texMap, f_Tex_Coord);
             }
-
-            fColor = f_Color * (ambient + diffuse + specular);
-            fColor.a = 1.0;
-            
-            gl_FragColor = fColor;
+            else {
+                vec4 fColor;
+                vec3 H = normalize(L + E);
+                vec4 ambient = ka * Le;
+                vec4 diffuse = kd * Le * max(0.0, dot(L, N));
+                vec4 specular = ks * Le * pow(max(dot(N, H), 0.0), s);
+                
+                if (dot(L, N) < 0.0) {
+                    specular = vec4(0.0, 0.0, 0.0, 1.0);
+                }
+    
+                fColor = f_Color * (ambient + diffuse + specular);
+                fColor.a = 1.0;
+                
+                gl_FragColor = fColor;
+            }
         }
     </script>
 

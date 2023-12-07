@@ -11,6 +11,8 @@ window.onload = function init()
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
     gl.frontFace(gl.CCW);
+
+    var textureReady = 0;
     
     var lightPos = vec4(0,1.5,1,0);
     gl.uniform4fv(gl.getUniformLocation(gl.program, "lightPos"), lightPos);
@@ -56,7 +58,13 @@ window.onload = function init()
         textureReady = 1;
     };
     image.src = '../Assets/xamp23.png';
-
+    
+    var quadVertices = [
+        vec3(-2, -1, -1),
+        vec3(2, -1, -1),
+        vec3(2, -1, -5),
+        vec3(-2, -1, -5),
+    ];
 
     var texCoords = [
         vec2(0.0, 0.0),
@@ -69,9 +77,19 @@ window.onload = function init()
     var scale = 0.25;
     var model = initObject(gl, filename, scale);
     
+    var texBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(texCoords), gl.STATIC_DRAW);
+
+    var vTexCoord = gl.getAttribLocation(gl.program, "a_Tex_Coord");
+    gl.vertexAttribPointer(vTexCoord, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vTexCoord);
+
     function tick() {
-        render(gl, model);
-        if(!g_drawingInfo) {
+        if (textureReady > 0) {
+            render(gl, model, quadVertices, T);
+        }
+        if(!g_drawingInfo || !(textureReady > 0)) {
             requestAnimationFrame(tick);
         }
     }
@@ -112,7 +130,6 @@ function initVertexBuffers(gl, program) {
 // Create a buffer object, assign it to attribute variables, and enable the assignment
 function createEmptyArrayBuffer(gl, a_attribute, num, type) {
     var buffer = gl.createBuffer(); // Create a buffer object
-    
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.vertexAttribPointer(a_attribute, num, type, false, 0, 0);
     gl.enableVertexAttribArray(a_attribute); // Enable the assignment
@@ -152,19 +169,10 @@ function onReadComplete(gl, model, objDoc) {
     // Acquire the vertex coordinates and colors from OBJ file
     var drawingInfo = objDoc.getDrawingInfo();
 
-    var quadVertices = [
-        vec3(-2, -1, -1),
-        vec3(2, -1, -1),
-        vec3(2, -1, -5),
-        vec3(-2, -1, -5),
-    ];
-    var tempmos = drawingInfo.vertices;
-    var temp = new Float32Array(drawingInfo.vertices.length + 9);
-    temp = drawingInfo.vertices.concat(flatten(quadVertices));
-
     // Write date into the buffer object
     gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, temp, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, (drawingInfo.vertices.length + 4)*sizeof['vec3'], gl.STATIC_DRAW);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, drawingInfo.vertices);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.normalBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.normals, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.colorBuffer);
@@ -177,16 +185,25 @@ function onReadComplete(gl, model, objDoc) {
     return drawingInfo;
 }
 
-function render(gl, model)
+function render(gl, model, quadVertices, T)
 {
     if (!g_drawingInfo && g_objDoc && g_objDoc.isMTLComplete()) {
         // OBJ and all MTLs are available
         g_drawingInfo = onReadComplete(gl, model, g_objDoc);
-    }
+        gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
+        gl.bufferSubData(gl.ARRAY_BUFFER, g_drawingInfo.vertices.length*sizeof['vec3'], flatten(quadVertices));
+    }   
     if (!g_drawingInfo) { 
         return;
     }
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLE_FAN, g_drawingInfo.indices.length, 4)
+
+    gl.uniform1i(gl.getUniformLocation(gl.program, "texMap"), 0);
+    gl.uniform1i(gl.getUniformLocation(gl.program, "marmor"), 1);
+    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "translate"), false, flatten(mat4()));
+    gl.drawArrays(gl.TRIANGLE_FAN, g_drawingInfo.vertices.length, 4);
+    
+    gl.uniform1i(gl.getUniformLocation(gl.program, "marmor"), 0);
+    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "translate"), false, flatten(T));
     gl.drawElements(gl.TRIANGLES, g_drawingInfo.indices.length, gl.UNSIGNED_SHORT, 0);
 }
