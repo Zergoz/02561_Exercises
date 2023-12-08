@@ -9,34 +9,21 @@
         attribute vec4 a_Position;
         attribute vec4 a_quadPosition;
 
-        varying vec4 normal;
-        varying vec4 f_Color;
-        varying vec4 diffuse_Color;
-        varying vec4 ambient_Color;
-        varying vec4 kd;
-        varying vec4 ka;
-        varying vec4 pos;
-        varying vec3 w_i;
         varying vec4 i_w;
         varying vec3 r_w;
         
         uniform vec3 eye;
         uniform mat4 view;
         uniform mat4 perspective;
-        uniform mat4 rotation;
         uniform mat4 M_tex;
-        uniform vec4 Ld;
-        uniform vec4 lightPos;
+
         
         void main() {
-            normal = a_Position;
-            pos = view * a_Position;
-            w_i = lightPos.w == 0.0 ? normalize(-lightPos.xyz) : normalize(lightPos.xyz - pos.xyz);
             
             i_w = M_tex * a_Position;
-            r_w = reflect(normalize(a_Position.xyz - eye), normal.xyz);
+            r_w = reflect(normalize(a_Position.xyz - eye), a_Position.xyz);
             
-            gl_Position = perspective * view * rotation * a_Position;
+            gl_Position = perspective * view * a_Position;
             
         }
     </script>

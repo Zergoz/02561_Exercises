@@ -11,10 +11,11 @@ window.onload = function init()
     var numVertices = 4;
 
     var view = mat4();
-    var P = perspective(90, 1, 1, 100);
-    
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
+
+    var P = perspective(90, 1, 1, 100);
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
+    
     gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
     
     const texSize = 64;
@@ -132,6 +133,5 @@ window.onload = function init()
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, numVertices);    
     }
-    
     render();
 }   

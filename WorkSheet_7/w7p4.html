@@ -9,14 +9,6 @@
         attribute vec4 a_Position;
         attribute vec4 a_quadPosition;
 
-        varying vec4 normal;
-        varying vec4 f_Color;
-        varying vec4 diffuse_Color;
-        varying vec4 ambient_Color;
-        varying vec4 kd;
-        varying vec4 ka;
-        varying vec4 pos;
-        varying vec3 w_i;
         varying vec4 i_w;
         varying vec3 r_w;
         varying float u;
@@ -27,10 +19,7 @@
         uniform vec3 eye;
         uniform mat4 view;
         uniform mat4 perspective;
-        uniform mat4 rotation;
         uniform mat4 M_tex;
-        uniform vec4 Ld;
-        uniform vec4 lightPos;
         uniform sampler2D texMapSphere;
 
         vec3 rotate_to_normal(vec3 n, vec3 v) {
@@ -42,22 +31,18 @@
             + n*v.z;
         }
         
-        void main() {
-            normal = a_Position;
-            pos = view * a_Position;
-            w_i = lightPos.w == 0.0 ? normalize(-lightPos.xyz) : normalize(lightPos.xyz - pos.xyz);
-            
+        void main() {            
             i_w = M_tex * a_Position;
             
-            u = 1.0 - atan(normal.z, normal.x)/(2.0*3.14);
-            v = acos(normal.y)/3.14;
+            u = 1.0 - atan(a_Position.z, a_Position.x)/(2.0*3.14);
+            v = acos(a_Position.y)/3.14;
             
             mapNormal = texture2D(texMapSphere, vec2(u,v)) * vec4(2) - vec4(1);
-            actualNormal = rotate_to_normal(normal.xyz, mapNormal.xyz);
+            actualNormal = rotate_to_normal(a_Position.xyz, mapNormal.xyz);
             
             r_w = reflect(normalize(a_Position.xyz - eye), actualNormal);
 
-            gl_Position = perspective * view * rotation * a_Position;
+            gl_Position = perspective * view * a_Position;
             
         }
 

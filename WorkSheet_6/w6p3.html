@@ -22,7 +22,6 @@
 
         uniform mat4 view;
         uniform mat4 perspective;
-        uniform mat4 rotation;
         uniform vec4 Ld;
         uniform vec4 lightPos;
         uniform sampler2D texMap;
@@ -39,7 +38,7 @@
 
             diffuse_Color = vec4(kd.x * dot(w_i, normal) * Ld.x, kd.y * dot(w_i, normal) * Ld.y, kd.z * dot(w_i, normal) * Ld.z, 1);
             ambient_Color = ka;
-            gl_Position = perspective * view * rotation * a_Position;
+            gl_Position = perspective * view * a_Position;
         }
     </script>
     <script type="text/javascript" src="../common/MV.js"></script>
@@ -60,6 +59,11 @@
     <canvas id="webgl-canvas" width="512" height="512">
         Please use a browser that supports HTML5 canvas.
     </canvas>
-    <button id="Rotaten">Rotatie</button>
+    <button id="Rotate">Rotate</button>
+    <p><b>Explanation w6p3:</b></p>
+    <p> For the minification filter we chose to use linear mipmap linear <br>
+        since it does bilinear filtering within the best mipmap <br>
+        as well as point sampling with bilinear filtering between the mipmaps.
+    </p>
 </body>
 </html>

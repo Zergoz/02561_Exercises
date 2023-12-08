@@ -57,5 +57,15 @@
         <option value="0">Nearest</option>
         <option value="1">Linear</option>
     </select>
+    <p><b>Explanation w6p2:</b></p>
+    <p>The <b>texture magnification</b> filter affects texels covering multiple pixels.<br>
+        Using nearest neighbour filtering causes the stair case aliasing.<br>
+        If we instead use bilinear filtering we remove the stair case aliasing. However the image looks more blurry.<br>
+        <br>
+        The <b>texture minification</b> filter affects pixels covering multiple texels.<br>
+        In minification nearest neighbour and bilinear filtering have little difference.<br>
+        We can instead use mipmapping. This generates a series of texture arrays at reduced sizes.<br>
+        WebGL can then find the texture array of the appropriate size and apply it.
+    </p>
 </body>
 </html>

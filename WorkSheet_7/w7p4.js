@@ -8,20 +8,15 @@ window.onload = function init()
     var program = initShaders(gl, "vertex-shader", "fragment-shader");
     gl.useProgram(program);
     gl.vBuffer = null;
-    //gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
     gl.frontFace(gl.CCW);
-
-    var lightPos = vec4(0,0,-1,0);
-    //var Le = vec4(0,0,-1,1);
-    var Ld = vec4(1,1,1,1);
 
     var orbitingRadius = -3;
     var orbitingAlpha = 0;
     var toggle = false;
     
     var numSubdivs = 7;
-    var sphereVertices = initSphere();
+    var sphereVertices = initSphere(gl, numSubdivs);
     
     
     var eye = vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha));
@@ -35,78 +30,16 @@ window.onload = function init()
     var invView = inverse(view);
 
     var M_tex = mult(mat4(invView[0][0], invView[0][1], invView[0][2], 0, invView[1][0], invView[1][1], invView[1][2], 0, invView[2][0], invView[2][1], invView[2][2], 0, 0, 0, 0, 0), inverse(P));
-     
-    var sut = "ged";
-
-    function initQuad(pointsArray) {
-        var quadVertices = [
-            vec4(-1, -1, 0.999, 1),
-            vec4(1, -1, 0.999, 1),
-            vec4(-1, 1, 0.999, 1),
-            vec4(1, 1, 0.999, 1),
-        ];
-        for (var i = 0; i < quadVertices.length; ++i) {
-            pointsArray.push(quadVertices[i]);
-        }
-    }
     
-    
-    function initSphere() 
-    {
-        var va = vec4(0.0, 0.0, 1.0, 1);
-        var vb = vec4(0.0, 0.942809, -0.333333, 1);
-        var vc = vec4(-0.816497, -0.471405, -0.333333, 1);
-        var vd = vec4(0.816497, -0.471405, -0.333333, 1);
-        var pointsArray = [];
-        initQuad(pointsArray);
-        tetrahedron(pointsArray, va, vb, vc, vd, numSubdivs);
-        gl.deleteBuffer(gl.vBuffer);
-        gl.vBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, gl.vBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
-        return pointsArray.length
-    }
-
-    function tetrahedron(pointsArray, a, b, c, d, n)
-    {
-        divideTriangle(pointsArray, a, b, c, n);
-        divideTriangle(pointsArray, d, c, b, n);
-        divideTriangle(pointsArray, a, d, b, n);
-        divideTriangle(pointsArray, a, c, d, n);
-    }
-
-    function divideTriangle(pointsArray, a, b, c, count)
-    {
-        if (count > 0) {
-            var ab = normalize(mix(a, b, 0.5), true);
-            var ac = normalize(mix(a, c, 0.5), true);
-            var bc = normalize(mix(b, c, 0.5), true);
-            divideTriangle(pointsArray, a, ab, ac, count - 1);
-            divideTriangle(pointsArray, ab, b, bc, count - 1);
-            divideTriangle(pointsArray, bc, c, ac, count - 1);
-            divideTriangle(pointsArray, ab, bc, ac, count - 1);
-        }
-        else {
-            triangle(pointsArray, a, b, c);
-        }
-    }
-
-    function triangle(pointsArray, a, b, c)
-    {
-        pointsArray.push(a);
-        pointsArray.push(b);
-        pointsArray.push(c);
-    }
-
     var g_tex_ready = 0;
     function initTexture()
     {
-        var cubemap = ['../pine/cm_left.png', // POSITIVE_X
-                       '../pine/cm_right.png', // NEGATIVE_X
-                       '../pine/cm_top.png', // POSITIVE_Y
-                       '../pine/cm_bottom.png', // NEGATIVE_Y
-                       '../pine/cm_back.png', // POSITIVE_Z
-                       '../pine/cm_front.png']; // NEGATIVE_Z
+        var cubemap = ['../Assets/cm_left.png', // POSITIVE_X
+                       '../Assets/cm_right.png', // NEGATIVE_X
+                       '../Assets/cm_top.png', // POSITIVE_Y
+                       '../Assets/cm_bottom.png', // NEGATIVE_Y
+                       '../Assets/cm_back.png', // POSITIVE_Z
+                       '../Assets/cm_front.png']; // NEGATIVE_Z
 
         gl.activeTexture(gl.TEXTURE0);
         var texture = gl.createTexture();
@@ -147,33 +80,13 @@ window.onload = function init()
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
             ++g_tex_ready;
         };
-        imageSphere.src = '../pine/normalmap.png';
+        imageSphere.src = '../Assets/normalmap.png';
     }
-
 
     var rotatenButton = document.getElementById("Rotaten");
     rotatenButton.addEventListener("click", function(ev) {
         toggle = !toggle;
     });
-
-    gl.uniform4fv(gl.getUniformLocation(program, "lightPos"), lightPos);
-    gl.uniform4fv(gl.getUniformLocation(program, "Ld"), Ld);
-
-    function tick() 
-    {
-        if (toggle) 
-        {
-            orbitingAlpha += 0.01;
-            eye = vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha));
-            view = lookAt(eye, vec3(0.0,0.0,0.0), vec3(0,1,0));
-            invView = inverse(view);
-            M_tex = mult(mat4(invView[0][0], invView[0][1], invView[0][2], 0, invView[1][0], invView[1][1], invView[1][2], 0, invView[2][0], invView[2][1], invView[2][2], 0, 0, 0, 0, 0), inverse(P));
-        }
-        if (g_tex_ready > 6) {
-            render();
-        }
-        requestAnimationFrame(tick);
-    }
 
     function render() 
     {
@@ -204,6 +117,82 @@ window.onload = function init()
         gl.drawArrays(gl.TRIANGLES, 4, sphereVertices);
 
     }
+
+    function tick() 
+    {
+        if (toggle) 
+        {
+            orbitingAlpha += 0.01;
+            eye = vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha));
+            view = lookAt(eye, vec3(0.0,0.0,0.0), vec3(0,1,0));
+            invView = inverse(view);
+            M_tex = mult(mat4(invView[0][0], invView[0][1], invView[0][2], 0, invView[1][0], invView[1][1], invView[1][2], 0, invView[2][0], invView[2][1], invView[2][2], 0, 0, 0, 0, 0), inverse(P));
+        }
+        if (g_tex_ready > 6) {
+            render();
+        }
+        requestAnimationFrame(tick);
+    }
     initTexture();
     tick();
 }   
+
+function initQuad(pointsArray) {
+    var quadVertices = [
+        vec4(-1, -1, 0.999, 1),
+        vec4(1, -1, 0.999, 1),
+        vec4(-1, 1, 0.999, 1),
+        vec4(1, 1, 0.999, 1),
+    ];
+    for (var i = 0; i < quadVertices.length; ++i) {
+        pointsArray.push(quadVertices[i]);
+    }
+}
+
+
+function initSphere(gl, numSubdivs) 
+{
+    var va = vec4(0.0, 0.0, 1.0, 1);
+    var vb = vec4(0.0, 0.942809, -0.333333, 1);
+    var vc = vec4(-0.816497, -0.471405, -0.333333, 1);
+    var vd = vec4(0.816497, -0.471405, -0.333333, 1);
+    var pointsArray = [];
+    initQuad(pointsArray);
+    tetrahedron(pointsArray, va, vb, vc, vd, numSubdivs);
+    gl.deleteBuffer(gl.vBuffer);
+    gl.vBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.vBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW);
+    return pointsArray.length
+}
+
+function tetrahedron(pointsArray, a, b, c, d, n)
+{
+    divideTriangle(pointsArray, a, b, c, n);
+    divideTriangle(pointsArray, d, c, b, n);
+    divideTriangle(pointsArray, a, d, b, n);
+    divideTriangle(pointsArray, a, c, d, n);
+}
+
+function divideTriangle(pointsArray, a, b, c, count)
+{
+    if (count > 0) {
+        var ab = normalize(mix(a, b, 0.5), true);
+        var ac = normalize(mix(a, c, 0.5), true);
+        var bc = normalize(mix(b, c, 0.5), true);
+        divideTriangle(pointsArray, a, ab, ac, count - 1);
+        divideTriangle(pointsArray, ab, b, bc, count - 1);
+        divideTriangle(pointsArray, bc, c, ac, count - 1);
+        divideTriangle(pointsArray, ab, bc, ac, count - 1);
+    }
+    else {
+        triangle(pointsArray, a, b, c);
+    }
+}
+
+function triangle(pointsArray, a, b, c)
+{
+    pointsArray.push(a);
+    pointsArray.push(b);
+    pointsArray.push(c);
+}

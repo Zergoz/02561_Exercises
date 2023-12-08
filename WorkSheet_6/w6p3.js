@@ -12,22 +12,26 @@ window.onload = function init()
     gl.enable(gl.DEPTH_TEST);
     gl.frontFace(gl.CCW);
 
-    var lightPos = vec4(0,0,-1,0);
-    //var Le = vec4(0,0,-1,1);
-    var Ld = vec4(1,1,1,1);
-
     var orbitingRadius = -3.5;
     var orbitingAlpha = 0;
     var toggle = false;
-
+    
     var numSubdivs = 7;
     var numVertices = initSphere(gl, numSubdivs);
-
+    
     var view = lookAt(vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha)), vec3(0.0,0.0,0.0), vec3(0,1,0));
-
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
+    
     var P = perspective(45, 1, 1, 5);
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
 
-    var R0 = mat4();
+    var lightPos = vec4(0,0,1,0);
+    gl.uniform4fv(gl.getUniformLocation(program, "lightPos"), lightPos);
+
+    var Ld = vec4(1,1,1,1);
+    gl.uniform4fv(gl.getUniformLocation(program, "Ld"), Ld);
+    
+    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
 
     function initSphere(gl, numSubdivs) 
     {
@@ -89,63 +93,32 @@ window.onload = function init()
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
     };
-    image.src = '../pine/earth.jpg';
+    image.src = '../Assets/earth.jpg';
 
-
-
-
-    var rotatenButton = document.getElementById("Rotaten");
-    rotatenButton.addEventListener("click", function(ev) {
+    var rotateButton = document.getElementById("Rotate");
+    rotateButton.addEventListener("click", function(ev) {
         toggle = !toggle;
     });
-
-
-
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(R0));
-    gl.uniform4fv(gl.getUniformLocation(program, "lightPos"), lightPos);
-    gl.uniform4fv(gl.getUniformLocation(program, "Ld"), Ld);
-    gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
-    
-    
-    
-    
-    
-    
-    
-    
-    /*
-    var cBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, cBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(vec4(1,1,1,1)), gl.STATIC_DRAW);
-
-    var cPosition = gl.getAttribLocation(program, "a_Color");
-    gl.vertexAttribPointer(cPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(cPosition);
-    */
-
-
-    function tick() 
-    {
-        if (toggle) 
-        {
-            orbitingAlpha += 0.05;
-            view = lookAt(vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha)), vec3(0.0,0.0,0.0), vec3(0,1,0));
-            gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
-        }
-        render(); requestAnimationFrame(tick);
-    }
 
     function render() 
     {
         var vPosition = gl.getAttribLocation(program, "a_Position");
         gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(vPosition);
-
+        
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.drawArrays(gl.TRIANGLES, 0, numVertices);
     }
     
+    function tick() 
+    {
+        if (toggle) 
+        {
+            orbitingAlpha += 0.01;
+            view = lookAt(vec3(orbitingRadius * Math.sin(orbitingAlpha), 0, orbitingRadius * Math.cos(orbitingAlpha)), vec3(0.0,0.0,0.0), vec3(0,1,0));
+            gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
+        }
+        render(); requestAnimationFrame(tick);
+    }
     tick();
 }   

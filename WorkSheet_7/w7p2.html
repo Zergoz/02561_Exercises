@@ -9,32 +9,17 @@
         attribute vec4 a_Position;
         attribute vec4 a_quadPosition;
 
-        varying vec3 normal;
-        varying vec4 f_Color;
-        varying vec4 diffuse_Color;
-        varying vec4 ambient_Color;
-        varying vec4 kd;
-        varying vec4 ka;
-        varying vec4 pos;
-        varying vec3 w_i;
         varying vec4 i_w;
 
         uniform mat4 view;
         uniform mat4 perspective;
-        uniform mat4 rotation;
         uniform mat4 M_tex;
-        uniform vec4 Ld;
-        uniform vec4 lightPos;
         uniform samplerCube texMap;
         
-        void main() {
-            normal = normalize(a_Position.xyz);
-            pos = view * a_Position;
-            w_i = lightPos.w == 0.0 ? normalize(-lightPos.xyz) : normalize(lightPos.xyz - pos.xyz);
-            
+        void main() {            
             i_w = M_tex * a_Position;
             
-            gl_Position = perspective * view * rotation * a_Position;
+            gl_Position = perspective * view * a_Position;
         }
     </script>
     <script type="text/javascript" src="../common/MV.js"></script>
@@ -47,8 +32,7 @@
         varying vec4 i_w;
         varying vec4 ambient_Color;
 
-        void main() {
-            //gl_FragColor = vec4(1,1,1,1);            
+        void main() {         
             gl_FragColor = textureCube(texMap, i_w.xyz);
         }
     </script>
