@@ -13,32 +13,27 @@ window.onload = function init()
     gl.useProgram(program);
 
 
-    // Variables
+    // Cube variables
     var numCubes = 8; // Body, Wings, Horizontal Stabilizer, Vertical Stabilizer, Right Aileron, Left Aileron, Elevator, Rudder = 8 
-    var numVertices = (36*numCubes); // 36 vertices for each cube
+    var cubeSize = 36;
+    const epsilon = .0001;
+
+    // Matrices, axes and angles for rotation of the whole plane
+    var R = mat4();
+    var obj_axis = vec4(1.0, 0.0, 0.0, 0.0);
+    var obj_up = vec4(0.0, 1.0, 0.0, 0.0);
+    var Rplane = mat4();
     var rotationX = 0; 
     var rotationY = 0;
     var rotationZ = 0;
-    var axisX = vec4(1.0, 0.0, 0.0, 0.0);
-    var axisY = vec4(0.0, 1.0, 0.0, 0.0);
-    var axisZ = vec4(0.0, 0.0, 1.0, 0.0);
-    const epsilon = .0001;
     
 
-    // Matrices and start uploads
-    var m = lookAt(vec3(0.0,0.0,-2.5), vec3(0.0,0.0,0.0), vec3(0,1,0));
+    // Model and perspective matrices and start uploads
+    var m = lookAt(vec3(1.0,1.0,-2.0), vec3(0.0,0.0,0.0), vec3(0,1,0));
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(m));
 
     var P = perspective(70, 1, 1, 5);
     gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
-
-    var Rx = rotateX(rotationX);
-    
-    var Ry = rotateY(rotationY);
-
-    var Rz = rotateZ(rotationZ);
-
-    var Rwhole = mult(mult(Rx, Ry), Rz);
 
 
     // Rudder stuff
@@ -189,7 +184,7 @@ window.onload = function init()
     colorArray = colorArray.concat(aIncrease(flapColor, 32));
 
     // Making big array for indices
-    indexArray = cubeIndicesIncrease(aIncrease(cubeIndices, numCubes), numCubes);
+    indexArray = cubeIndicesIncrease(aIncrease(cubeIndices, numCubes), numCubes, cubeSize);
     
     // Event listeners
     var rudderSlider = document.getElementById("Rudder");
@@ -232,65 +227,77 @@ window.onload = function init()
     
     function render() 
     {
+        // Clear
         gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "RX"), false, flatten(Rx));
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "RY"), false, flatten(Ry));
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "RZ"), false, flatten(Rz));
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "Rwhole"), false, flatten(Rwhole));
-                
-        
+
+        // Rotation of the whole plane
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "Rplane"), false, flatten(Rplane)); 
+                        
         // Immovable objects
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "trans"), false, flatten(mat4()));
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(mat4()));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "Rcube"), false, flatten(mat4()));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "untrans"), false, flatten(mat4()));
-        gl.drawElements(gl.TRIANGLES, 36*4, gl.UNSIGNED_BYTE, 0);
+        gl.drawElements(gl.TRIANGLES, cubeSize*4, gl.UNSIGNED_BYTE, 0);
+        
+        // Elevator
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "trans"), false, flatten(transElevator));        
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "Rcube"), false, flatten(RElevator));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "untrans"), false, flatten(untransElevator));
+        gl.drawElements(gl.TRIANGLES, cubeSize, gl.UNSIGNED_BYTE, cubeSize*6);
+        
+        // Rudder
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "trans"), false, flatten(transRudder));        
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "Rcube"), false, flatten(RRudder));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "untrans"), false, flatten(untransRudder));
+        gl.drawElements(gl.TRIANGLES, cubeSize, gl.UNSIGNED_BYTE, cubeSize*7);
         
         // Ailerons
         // Right
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "trans"), false, flatten(transAileron));        
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(RAileronRight));
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "Rcube"), false, flatten(RAileronRight));
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "untrans"), false, flatten(untransAileron));
-        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 36*4);
+        gl.drawElements(gl.TRIANGLES, cubeSize, gl.UNSIGNED_BYTE, cubeSize*4);
         
         // Left
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(RAileronLeft));
-        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 36*5);
-
-        // Elevator
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "trans"), false, flatten(transElevator));        
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(RElevator));
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "untrans"), false, flatten(untransElevator));
-        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 36*6);
-
-        // Rudder
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "trans"), false, flatten(transRudder));        
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "rotation"), false, flatten(RRudder));
-        gl.uniformMatrix4fv(gl.getUniformLocation(program, "untrans"), false, flatten(untransRudder));
-        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_BYTE, 36*7);
-
+        gl.uniformMatrix4fv(gl.getUniformLocation(program, "Rcube"), false, flatten(RAileronLeft));
+        gl.drawElements(gl.TRIANGLES, cubeSize, gl.UNSIGNED_BYTE, cubeSize*5);
     }
         
     function animate() 
     {
-        rotationX += thetaElevator/45;
-        rotationY += thetaRudder/45;
-        rotationZ += thetaAileron/45;
-        /*
-        Rx = rotate(rotationX, axisX);
-        Ry = rotate(rotationY, mult(Rx, axisY));
-        Rz = rotate(rotationZ, mult(mult(Ry, Rx), axisZ));
-        */
+        // Update rotation angles based on elevator, rudder and ailerons
+        rotationX = thetaElevator/45;
+        rotationY = thetaRudder/45;
+        rotationZ = thetaAileron/45;
+
+        // Compute third basis vector
+        var obj_right = cross(obj_axis, obj_up);
+
+        // Compute entire rotation of local coordinate system
+        R = mult(R, rotate(rotationX, obj_axis));
+        R = mult(R, rotate(rotationY, obj_up));
+        R = mult(R, rotate(rotationZ, obj_right));
+
+        // Rotate local coordinate system
+        obj_axis = mult(R, obj_axis);
+        obj_up = mult(R, obj_up);
+        obj_right = cross(obj_axis, obj_up);
         
-        Ry = rotateY(rotationY);
-        axisZ = mult(Ry, vec4(0.0, 0.0, 1.0, 0.0));
-        Rwhole = mult(rotate(rotationZ, axisZ), mult(rotateY(rotationY), rotateX(rotationX)));
+        // Create matrix for change of basis
+        Rplane = mat4(obj_axis[0], obj_up[0], obj_right[0], 0.0,
+                     obj_axis[1], obj_up[1], obj_right[1], 0.0,
+                     obj_axis[2], obj_up[2], obj_right[2], 0.0,
+                     0.0, 0.0, 0.0, 1.0);
+        
+        // Reset rotation to counter act conservation of momentum
+        R = mat4();
 
         render(); requestAnimationFrame(animate);
     }
     animate();
 }   
 
-
+// Create new array by duplicating specified array an amount of times
 function aIncrease (array, amount) 
 {
     temp = [];
@@ -299,14 +306,15 @@ function aIncrease (array, amount)
     return temp;
 }
 
-function cubeIndicesIncrease (array, numCubes) 
+// Helper function to reuse a single array of cube indices for each cube
+function cubeIndicesIncrease (array, numCubes, cubeSize) 
 {
     temp = [];
     for (var i = 0; i < numCubes; i++) 
     {
-        for (var j = 0; j < 36; j++) 
+        for (var j = 0; j < cubeSize; j++) 
         {
-            temp.push(array[(i*36)+j]+(i*8));
+            temp.push(array[(i*cubeSize)+j]+(i*8));
         }
     }
     return temp;
