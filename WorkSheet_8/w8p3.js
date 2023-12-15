@@ -18,14 +18,15 @@ window.onload = function init()
     const epsilon = .001;
  
     var view = mat4();
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
+
     var P = perspective(90, 1, 1, 100);
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
+
     var d = -3.0;
     var Mp = mat4(1,0,0,0,0,1,0,0,0,0,1,0,0,1.0/d,0,0);
     var T = translate(lightPos[0], lightPos[1], lightPos[2]);
     var nT = translate(-lightPos[0], -lightPos[1], -lightPos[2]);
-    
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "perspective"), false, flatten(P));
 
     var image = document.createElement('img');
     image.crossorigin = 'anonymous';
@@ -42,7 +43,7 @@ window.onload = function init()
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
         textureReady = 1;
     };
-    image.src = '../pine/xamp23.png';
+    image.src = '../Assets/xamp23.png';
 
     var quadVertices = [
         vec4(-2, -1, -1, 1),
@@ -65,17 +66,20 @@ window.onload = function init()
         vec2(1.0, 1.0),
         vec2(0.0, 1.0)
     ];
-    
+
+    // Texture stuff
     var texture1 = gl.createTexture();
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, texture1);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 0]));
 
-    var rotatenButton = document.getElementById("Rotaten");
-    rotatenButton.addEventListener("click", function(ev) {
+    // Buttons
+    var rotateButton = document.getElementById("Rotate");
+    rotateButton.addEventListener("click", function(ev) {
         toggle = !toggle;
     });
 
+    // Buffer stuff
     var vBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, vBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(quadVertices), gl.STATIC_DRAW);
@@ -95,7 +99,7 @@ window.onload = function init()
     function render() {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-
+        // Floor
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
         gl.uniform1f(gl.getUniformLocation(program, "visibility"), 1.0);
         gl.depthFunc(gl.LESS);
@@ -103,6 +107,7 @@ window.onload = function init()
         gl.uniform1i(gl.getUniformLocation(program, "texMap"), 0);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, numVertices);
         
+        // Shadows
         var modView = mat4();
         modView = mult(modView, T);
         modView = mult(modView, Mp);
@@ -117,7 +122,7 @@ window.onload = function init()
         
         gl.drawArrays(gl.TRIANGLE_FAN, numVertices*2, numVertices);
         
-        
+        // Red quads
         gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, flatten(view));
         gl.uniform1f(gl.getUniformLocation(program, "visibility"), 1.0);
         gl.depthFunc(gl.LESS);
@@ -126,7 +131,6 @@ window.onload = function init()
         gl.drawArrays(gl.TRIANGLE_FAN, numVertices, numVertices);
         
         gl.drawArrays(gl.TRIANGLE_FAN, numVertices*2, numVertices);
-
     }
     
     function tick() 

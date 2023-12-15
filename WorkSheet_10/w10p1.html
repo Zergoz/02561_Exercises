@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>w9p1</title>
-    <script type="text/javascript" src="w9p1.js"></script>
-    <script type="text/javascript" src="../common/initShaders2.js"></script>
+    <title>w10p1</title>
+    <script type="text/javascript" src="w10p1.js"></script>
+    <script type="text/javascript" src="../common/initShaders.js"></script>
     <script type="text/javascript" src="../common/MV.js"></script>
     <script type="text/javascript" src="../common/OBJParser.js"></script>
 
@@ -16,10 +16,9 @@
 
         varying vec4 f_Color;
 
+        uniform mat4 rotation;
         uniform mat4 view;
         uniform mat4 projection;
-        uniform mat4 translate;
-
         uniform vec4 lightPos;
 
         void main() {
@@ -29,26 +28,11 @@
             L = normalize(light - a_Position.xyz);
             E = -a_Position.xyz;
             N = normalize((view * a_Normal).xyz);
-
-            gl_Position = projection * view * translate * a_Position;
-        }
-    </script>
-    <script id="vertex-shader2" type="x-shader/x-vertex">
-        attribute vec4 a_Position;
-        attribute vec2 a_Tex_Coord;
-
-        varying vec2 f_Tex_Coord;
-
-        uniform mat4 view;
-        uniform mat4 projection;
-        uniform mat4 translate;
-
-        void main() {
-            f_Tex_Coord = a_Tex_Coord;
             
-            gl_Position = projection * view * translate * a_Position;
+            gl_Position = projection * view * rotation * a_Position;
         }
     </script>
+    
     <script id="fragment-shader" type="x-shader/x-fragment">
         precision mediump float;
         
@@ -78,22 +62,11 @@
             gl_FragColor = fColor;
         }
     </script>
-    <script id="fragment-shader2" type="x-shader/x-fragment">
-        precision mediump float;
-        
-        varying vec2 f_Tex_Coord;
-        
-        uniform sampler2D texMap;
-        
-        void main() {
-            gl_FragColor = texture2D(texMap, f_Tex_Coord);
-            }
-    </script>
+
 </head>
 <body>
     <canvas id="webgl-canvas" width="512" height="512">
         Please use a browser that supports HTML5 canvas.
     </canvas>
-    <p><b>Does not work at the moment</b></p>
 </body>
 </html>

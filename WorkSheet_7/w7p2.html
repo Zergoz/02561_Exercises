@@ -42,8 +42,11 @@
     <canvas id="webgl-canvas" width="512" height="512">
         Please use a browser that supports HTML5 canvas.
     </canvas>
-    <button id="Rotaten">Rotatie</button>
+    <button id="Rotate">Rotate</button>
     <p><b>Explanation:</b></p>
-    <p>Blib blob scubadibidob</p>
+    <p>To get back from clip space to camera space we use the inverse projection matrix to "revert" the matrix multiplication. <br>
+       After this we use the inverse of the rotational part of the view matrix. <br>
+       This leaves us with the eye-point looking at the quad with correct direction vectors in world coordinates.
+    </p> 
 </body>
 </html>

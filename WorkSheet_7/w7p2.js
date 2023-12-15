@@ -63,8 +63,8 @@ window.onload = function init()
         }
     }
 
-    var rotatenButton = document.getElementById("Rotaten");
-    rotatenButton.addEventListener("click", function(ev) {
+    var rotateButton = document.getElementById("Rotate");
+    rotateButton.addEventListener("click", function(ev) {
         toggle = !toggle;
     });
 

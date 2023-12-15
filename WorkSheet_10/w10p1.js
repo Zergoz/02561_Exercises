@@ -1,5 +1,3 @@
-// Out of order 
-
 window.onload = function init()
 {
     var canvas = document.getElementById("webgl-canvas");
@@ -8,16 +6,13 @@ window.onload = function init()
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.program = initShaders(gl, "vertex-shader", "fragment-shader");
-    gl.program2 = initShaders(gl, "vertex-shader2", "fragment-shader2")
     gl.useProgram(gl.program);
 
     gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
     gl.frontFace(gl.CCW);
-
-    var textureReady = 0;
     
-    var lightPos = vec4(0,1.5,1,0);
+    var lightPos = vec4(0,0,-1,0);
     gl.uniform4fv(gl.getUniformLocation(gl.program, "lightPos"), lightPos);
 
     var Le = vec4(1,1,1,1);
@@ -35,87 +30,48 @@ window.onload = function init()
     var s = 100.0;
     gl.uniform1f(gl.getUniformLocation(gl.program, "s"), s);
 
-    var view = mat4();
+    var view = lookAt(vec3(0,0,2), vec3(0,0,0), vec3(0,1,0));
     gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "view"), false, flatten(view));
 
     var P = perspective(90, 1, 0.1, 100);
     gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "projection"), false, flatten(P));
     
-    var T = translate(0, -1, -3);
-    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "translate"), false, flatten(T));
+    var filename = "../Assets/Suzanne.obj";
+    var scale = 1;
+    var model = initObject(gl, filename, scale);
+
+    var currentAngle = [0.0, 0.0]; // [x-axis, y-axis] degrees
+    var dragging = false; // Dragging or not
+    var lastX = -1, lastY = -1; // Last position of the mouse
     
-    // Switch
-    gl.useProgram(gl.program2);
-
-    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program2, "view"), false, flatten(view));
-
-    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program2, "projection"), false, flatten(P));
-    
-    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program2, "translate"), false, flatten(mat4()));
-
-    gl.uniform1i(gl.getUniformLocation(gl.program2, "texMap"), 0);
-
-    var image = document.createElement('img');
-    image.crossorigin = 'anonymous';
-    image.onload = function () { 
-        var texture0 = gl.createTexture();
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, texture0);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-        gl.generateMipmap(gl.TEXTURE_2D);
-        
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        textureReady = 1;
+    // Mouse events
+    canvas.onmousedown = function(ev) { // Mouse is pressed
+        var x = ev.clientX, y = ev.clientY;
+        // Start dragging if a mouse is in <canvas>
+        var rect = ev.target.getBoundingClientRect();
+        if (rect.left <= x && x < rect.right && rect.top <= y && y < rect.bottom) {
+            lastX = x; lastY = y;
+            dragging = true;
+        }
     };
-    image.src = '../Assets/xamp23.png';
-    
-    var quadVertices = [
-        vec4(-2, -1, -1, 1),
-        vec4(2, -1, -1, 1),
-        vec4(2, -1, -5, 1),
-        vec4(-2, -1, -5, 1),
-    ];
+    // Mouse is released
+    canvas.onmouseup = function(ev) { dragging = false; };
 
-    var texCoords = [
-        vec2(0.0, 0.0),
-        vec2(1.0, 0.0),
-        vec2(1.0, 1.0),
-        vec2(0.0, 1.0),
-    ];
-
-    var texBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(texCoords), gl.STATIC_DRAW);
-
-    var vTexCoord = gl.getAttribLocation(gl.program2, "a_Tex_Coord");
-    gl.vertexAttribPointer(vTexCoord, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(vTexCoord);
-
-    var quadBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, quadBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, flatten(quadVertices), gl.STATIC_DRAW);
-
-    var quadPosition = gl.getAttribLocation(gl.program2, "a_Position");
-    gl.vertexAttribPointer(quadPosition, 4, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(quadPosition);
-
-    // Switch
-    gl.useProgram(gl.program);
-
-    var filename = "../Assets/teapot.obj";
-    var scale = 0.25;
-    var model = initObject(gl, filename, scale); 
+    canvas.onmousemove = function(ev) { // Mouse is moved
+        var x = ev.clientX, y = ev.clientY;
+        if (dragging) {
+            var factor = 100/canvas.height; // The rotation ratio
+            var dx = factor * (x - lastX);
+            var dy = factor * (y - lastY);
+            // Limit x-axis rotation angle to -90 to 90 degrees
+            currentAngle[0] = Math.max(Math.min(currentAngle[0] + dy, 90.0), -90.0);
+            currentAngle[1] = currentAngle[1] + dx;
+        }
+        lastX = x, lastY = y;
+    };
 
     function tick() {
-        if (textureReady == 1) {
-            render(gl, model, quadVertices, T);
-        }
-        if(!g_drawingInfo || (textureReady != 1)) {
-            requestAnimationFrame(tick);
-        }
+        render(gl, model, currentAngle); requestAnimationFrame(tick);
     }
     tick();
 }
@@ -154,6 +110,7 @@ function initVertexBuffers(gl, program) {
 // Create a buffer object, assign it to attribute variables, and enable the assignment
 function createEmptyArrayBuffer(gl, a_attribute, num, type) {
     var buffer = gl.createBuffer(); // Create a buffer object
+    
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.vertexAttribPointer(a_attribute, num, type, false, 0, 0);
     gl.enableVertexAttribArray(a_attribute); // Enable the assignment
@@ -195,7 +152,7 @@ function onReadComplete(gl, model, objDoc) {
 
     // Write date into the buffer object
     gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.vertices, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.vertices,gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.normalBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, drawingInfo.normals, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.colorBuffer);
@@ -208,22 +165,22 @@ function onReadComplete(gl, model, objDoc) {
     return drawingInfo;
 }
 
-function render(gl, model, quadVertices, T)
+function render(gl, model, currentAngle)
 {
     if (!g_drawingInfo && g_objDoc && g_objDoc.isMTLComplete()) {
         // OBJ and all MTLs are available
         g_drawingInfo = onReadComplete(gl, model, g_objDoc);
-    }   
+    }
     if (!g_drawingInfo) { 
         return;
     }
-    // Switch
-    gl.useProgram(gl.program2);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); 
+    
+    // Update rotations
+    var rotation_x = rotateX(-currentAngle[0]);
+    var rotation_y = rotateY(-currentAngle[1]);
+    
+    gl.uniformMatrix4fv(gl.getUniformLocation(gl.program, "rotation"), false, flatten(mult(rotation_x, rotation_y)));
 
-    // Switch
-    gl.useProgram(gl.program);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.drawElements(gl.TRIANGLES, g_drawingInfo.indices.length, gl.UNSIGNED_SHORT, 0);
 }
